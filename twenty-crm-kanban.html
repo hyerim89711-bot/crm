@@ -121,6 +121,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100vh
 .deal-title{font-size:12px;font-weight:600;line-height:1.4}
 .deal-menu{color:var(--text3);cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;opacity:0;transition:opacity .15s;padding:1px 3px}
 .deal-card:hover .deal-menu{opacity:1}
+.deal-delete{color:#ef4444;cursor:pointer;font-size:11px;font-weight:700;flex-shrink:0;opacity:0;transition:opacity .15s;padding:1px 5px;border-radius:3px;line-height:1.2}
+.deal-card:hover .deal-delete{opacity:1}
+.deal-delete:hover{background:#fee2e2}
 .deal-company{display:flex;align-items:center;gap:7px;margin-bottom:9px}
 .co-avatar{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
 .co-name{font-size:11px;color:var(--text2)}
@@ -654,6 +657,7 @@ function cardHTML(d, col){
     <div class="deal-top">
       <div class="deal-title">${d.title}</div>
       <div class="deal-menu" onclick="event.stopPropagation()">⋯</div>
+      <div class="deal-delete" onclick="event.stopPropagation();deleteDeal('${col.id}','${d.id}')">✕</div>
     </div>
     <div class="deal-company">
       <div class="co-avatar" style="background:${d.coColor}">${d.company[0]}</div>
@@ -1272,6 +1276,13 @@ function findDeal(id){
   return null;
 }
 
+function deleteDeal(colId, dealId){
+  if(!confirm('이 딜을 삭제하시겠습니까?')) return;
+  const col = COLS.find(c=>c.id===colId);
+  if(!col) return;
+  col.deals = col.deals.filter(d=>d.id!==dealId);
+  renderAll();
+}
 function openDetail(dealId){
   actDetailDealId = dealId;
   actDetailTab = 'info';
