@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HYERIM CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- SheetJS for real Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6f8;
+  --sidebar:#ffffff;
+  --surface:#ffffff;
+  --surface2:#f0f2f5;
+  --border:#e4e7ed;
+  --border2:#d0d5df;
+  --accent:#4f6ef7;
+  --accent-dim:rgba(79,110,247,0.08);
+  --green:#16a34a;
+  --green-dim:rgba(22,163,74,0.08);
+  --yellow:#d97706;
+  --yellow-dim:rgba(217,119,6,0.08);
+  --orange:#ea580c;
+  --orange-dim:rgba(234,88,12,0.08);
+  --red:#dc2626;
+  --red-dim:rgba(220,38,38,0.08);
+  --purple:#7c3aed;
+  --purple-dim:rgba(124,58,237,0.08);
+  --teal:#0d9488;
+  --teal-dim:rgba(13,148,136,0.08);
+  --text:#111827;
+  --text2:#6b7280;
+  --text3:#9ca3af;
+  --mono:'DM Mono',monospace;
+  --sans:'DM Sans',sans-serif;
+  --r:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-hover:0 4px 16px rgba(0,0,0,.12);
+  --shadow-drag:0 20px 48px rgba(0,0,0,.2);
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:13px}
+
+/* 탑바 */
+.topbar{height:52px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;flex-shrink:0;background:#fff}
+.logo{display:flex;align-items:center;gap:9px;margin-right:24px}
+.logo-mark{width:26px;height:26px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;font-family:var(--mono)}
+.logo-name{font-weight:700;font-size:14px;letter-spacing:-.02em}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)}
+.breadcrumb .sep{color:var(--text3)}
+.breadcrumb .cur{color:var(--text);font-weight:500}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:var(--sans)}
+.btn-ghost{background:#fff;border-color:var(--border2);color:var(--text2)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{filter:brightness(1.08)}
+.avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#4f6ef7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;cursor:pointer}
+
+/* 서브헤더 */
+.subheader{border-bottom:1px solid var(--border);background:#fff;flex-shrink:0}
+.subheader-top{display:flex;align-items:center;padding:12px 20px 0;gap:10px}
+.page-title{font-size:16px;font-weight:700;letter-spacing:-.02em}
+.total-badge{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:2px 8px;font-family:var(--mono);font-size:10px;color:var(--text2)}
+.pipeline-total{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--text2)}
+.pipeline-total span{color:var(--green);font-weight:600}
+.subheader-tabs{display:flex;padding:0 20px;margin-top:2px}
+.stab{padding:8px 12px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.stab:hover{color:var(--text2)}
+.stab.on{color:var(--text);border-bottom-color:var(--accent)}
+.subheader-filters{display:flex;align-items:center;gap:6px;padding:8px 20px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:11px;color:var(--text2);cursor:pointer;transition:all .15s;font-family:var(--sans);user-select:none}
+.chip:hover{border-color:var(--border2);color:var(--text)}
+.chip.on{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.chip.active-sort{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);font-weight:600}
+.chip-sep{width:1px;height:16px;background:var(--border);margin:0 2px}
+.view-toggle{display:flex;gap:2px}
+.view-btn{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text3);transition:all .15s}
+.view-btn.on{background:var(--surface2);color:var(--text)}
+
+/* 칸반 보드 */
+.board-wrap{flex:1;overflow-x:auto;overflow-y:hidden;padding:16px 20px 0;display:flex;gap:12px;min-width:0;max-height:calc(100vh - 180px)}
+.board-wrap::-webkit-scrollbar{height:6px}
+.board-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* 컬럼 */
+.col{width:268px;min-width:260px;display:flex;flex-direction:column;max-height:100%;animation:slideUp .3s ease both}
+.col:nth-child(1){animation-delay:.04s}
+.col:nth-child(2){animation-delay:.08s}
+.col:nth-child(3){animation-delay:.12s}
+.col:nth-child(4){animation-delay:.16s}
+.col:nth-child(5){animation-delay:.20s}
+.col:nth-child(6){animation-delay:.24s}
+.col-header{display:flex;align-items:center;gap:7px;padding:0 2px 10px;flex-shrink:0}
+.col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.col-name{font-size:12px;font-weight:600}
+.col-count{font-family:var(--mono);font-size:10px;color:var(--text2);background:var(--surface2);border-radius:10px;padding:1px 6px}
+.col-amount{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text2)}
+.col-add{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--text3);cursor:pointer;font-size:16px;transition:all .15s}
+.col-add:hover{background:var(--surface2);color:var(--text)}
+.col-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px 0 20px;border-radius:var(--r);transition:background .12s, outline .12s;min-height:80px}
+.col-body::-webkit-scrollbar{width:3px}
+.col-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.col-body.drag-over{background:var(--accent-dim);outline:2px dashed var(--accent);outline-offset:-2px}
+
+/* 딜 카드 */
+.deal-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:13px;cursor:grab;transition:box-shadow .15s,border-color .15s,opacity .15s;position:relative;overflow:hidden;user-select:none;flex-shrink:0}
+.deal-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+.deal-card:hover{box-shadow:var(--shadow-hover);border-color:var(--border2)}
+.deal-card:active{cursor:grabbing}
+.deal-card.dragging{opacity:.3;box-shadow:none;border-style:dashed;cursor:grabbing}
+.deal-card.c-blue::before{background:#4f6ef7}
+.deal-card.c-yellow::before{background:#d97706}
+.deal-card.c-orange::before{background:#ea580c}
+.deal-card.c-purple::before{background:#7c3aed}
+.deal-card.c-teal::before{background:#0d9488}
+.deal-card.c-green::before{background:#16a34a}
+.deal-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.deal-title{font-size:12px;font-weight:600;line-height:1.4}
+.deal-menu{color:var(--text3);cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;opacity:0;transition:opacity .15s;padding:1px 3px}
+.deal-card:hover .deal-menu{opacity:1}
+.deal-delete{color:#ef4444;cursor:pointer;font-size:11px;font-weight:700;flex-shrink:0;opacity:0;transition:opacity .15s;padding:1px 5px;border-radius:3px;line-height:1.2}
+.deal-card:hover .deal-delete{opacity:1}
+.deal-delete:hover{background:#fee2e2}
+.deal-company{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.co-avatar{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;flex-shrink:0}
+.co-name{font-size:11px;color:var(--text2)}
+.deal-amount{font-family:var(--mono);font-size:14px;font-weight:600;margin-bottom:9px;letter-spacing:-.02em}
+.deal-footer{display:flex;align-items:center;gap:5px}
+.deal-tag{display:inline-flex;align-items:center;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:500}
+.tag-blue{background:var(--accent-dim);color:var(--accent)}
+.tag-green{background:var(--green-dim);color:var(--green)}
+.tag-yellow{background:var(--yellow-dim);color:var(--yellow)}
+.tag-orange{background:var(--orange-dim);color:var(--orange)}
+.tag-purple{background:var(--purple-dim);color:var(--purple)}
+.tag-teal{background:var(--teal-dim);color:var(--teal)}
+.tag-gray{background:var(--surface2);color:var(--text2)}
+.deal-avatars{display:flex;margin-left:auto}
+.deal-avatar-sm{width:18px;height:18px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;margin-left:-5px}
+.deal-avatar-sm:first-child{margin-left:0}
+.deal-progress{margin-top:8px}
+.progress-bar{height:3px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px}
+.deal-date{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);margin-top:6px}
+.deal-date.warn{color:var(--orange)}
+.add-card{border:1.5px dashed var(--border2);border-radius:var(--r);padding:10px;display:flex;align-items:center;justify-content:center;gap:5px;color:var(--text3);cursor:pointer;font-size:11px;transition:all .2s;flex-shrink:0;background:transparent}
+.add-card:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+
+/* 드래그 고스트 */
+.drag-ghost{position:fixed;pointer-events:none;z-index:9999;transform:rotate(1.5deg) scale(1.02);box-shadow:var(--shadow-drag);border-radius:var(--r);opacity:.96;transition:none}
+
+/* 요약바 */
+.summary-bar{border-top:1px solid var(--border);background:#fff;padding:7px 20px;display:flex;align-items:center;gap:18px;flex-shrink:0;font-size:11px;color:var(--text2)}
+.sum-item{display:flex;align-items:center;gap:5px}
+.sum-dot{width:7px;height:7px;border-radius:50%}
+.sum-val{font-family:var(--mono);color:var(--text);font-weight:600;margin-left:2px}
+
+/* 토스트 */
+.toast{position:fixed;bottom:56px;left:50%;transform:translateX(-50%) translateY(16px);background:#111827;color:#fff;border-radius:8px;padding:8px 16px;font-size:12px;opacity:0;pointer-events:none;transition:all .22s;z-index:9000;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cardDrop{from{opacity:0;transform:scale(.95) translateY(-8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.card-dropped{animation:cardDrop .22s ease}
+
+/* ── 모달 (딜 추가) ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:480px;max-height:80vh;overflow-y:auto;display:flex;flex-direction:column;gap:14px}
+.modal-title{font-size:15px;font-weight:700}
+.modal label{font-size:11px;color:var(--text2);display:flex;flex-direction:column;gap:4px}
+.modal input,.modal select{border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:13px;font-family:var(--sans);outline:none}
+.modal input:focus,.modal select:focus{border-color:var(--accent)}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+
+/* ── 딜 상세 모달 ── */
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:none;align-items:center;justify-content:center}
+.detail-overlay.show{display:flex}
+.detail-modal{background:#fff;border-radius:16px;width:540px;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.detail-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);position:relative}
+.detail-stage-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;margin-bottom:10px}
+.detail-title{font-size:20px;font-weight:700;letter-spacing:-.02em;line-height:1.3}
+.detail-close{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:16px;transition:all .15s}
+.detail-close:hover{background:var(--surface2);color:var(--text)}
+.detail-body{padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.detail-section{display:flex;flex-direction:column;gap:8px}
+.detail-section-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
+.detail-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:8px}
+.detail-row-label{font-size:11px;color:var(--text2);width:72px;flex-shrink:0}
+.detail-row-value{font-size:12px;font-weight:500;color:var(--text)}
+.detail-amount-big{font-family:var(--mono);font-size:28px;font-weight:700;letter-spacing:-.03em;color:var(--text)}
+.detail-progress-wrap{margin-top:4px}
+.detail-progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px}
+.detail-progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.detail-progress-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.detail-owners-row{display:flex;gap:8px;flex-wrap:wrap}
+.detail-owner-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface2);border-radius:20px;font-size:11px;font-weight:500}
+.detail-owner-av{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
+.detail-footer{padding:12px 24px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+/* ── 소팅 뷰 (담당자/회사/마감일) ── */
+.sort-view{display:none;flex:1;overflow:auto;overflow-x:auto;padding:16px 20px;position:relative;z-index:1}
+.sort-view.show{display:flex;flex-direction:column}
+.board-kanban{display:flex;gap:12px;min-height:0}
+/* 담당자 뷰 */
+.owner-group{margin-bottom:20px}
+.owner-group-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.owner-av-lg{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.owner-name-lg{font-size:14px;font-weight:600}
+.owner-deal-count{font-size:11px;color:var(--text2);margin-left:2px}
+.owner-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+/* 회사 뷰 */
+.company-group{margin-bottom:20px}
+.company-group-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.company-av-lg{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+.company-name-lg{font-size:14px;font-weight:600}
+/* 금액 뷰 */
+.amount-list{display:flex;flex-direction:column;gap:0}
+.amount-row{display:grid;grid-template-columns:1fr 140px 120px 120px 100px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:#fff;cursor:pointer;transition:background .1s}
+.amount-row:hover{background:#f9fafb}
+.amount-row.header-row{background:var(--surface2);font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;cursor:default;border-radius:8px 8px 0 0;border-bottom:2px solid var(--border2)}
+.amount-row:last-child{border-bottom:none;border-radius:0 0 8px 8px}
+.amount-table{background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.amount-bar-cell{display:flex;align-items:center;gap:8px}
+.amt-mini-bar{height:6px;background:var(--accent);border-radius:3px;transition:width .4s ease}
+/* 마감일 뷰 */
+.deadline-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.deadline-table th{background:var(--surface2);padding:9px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border2)}
+.deadline-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+.deadline-table tr:last-child td{border-bottom:none}
+.deadline-table tr:hover td{background:#f9fafb}
+.deadline-table tr.warn-row td{background:#fff7ed}
+.deadline-table tr.warn-row:hover td{background:#ffedd5}
+.dl-days-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;font-family:var(--mono)}
+.dl-ok{background:var(--green-dim);color:var(--green)}
+.dl-warn{background:var(--yellow-dim);color:var(--yellow)}
+.dl-danger{background:var(--red-dim);color:var(--red)}
+.dl-past{background:var(--surface2);color:var(--text3)}
+
+/* 금액순 정렬 버튼 */
+.sort-dir-btn{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;border:1px solid var(--border2);background:#fff;color:var(--text2);transition:all .15s}
+.sort-dir-btn:hover{background:var(--surface2);color:var(--text)}
+.sort-dir-btn.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+/* ── 활동 로그 ── */
+.activity-tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin:0 -24px;padding:0 24px}
+.activity-tab{padding:8px 14px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.activity-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.activity-tab:hover:not(.on){color:var(--text2)}
+
+.activity-log{display:flex;flex-direction:column;gap:0}
+.activity-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);position:relative}
+.activity-item:last-child{border-bottom:none}
+.activity-icon{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px}
+.act-call{background:#eff6ff}
+.act-email{background:#f0fdf4}
+.act-meeting{background:#faf5ff}
+.act-note{background:#fffbeb}
+.activity-content{flex:1;min-width:0}
+.activity-header{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.activity-type{font-size:11px;font-weight:600;color:var(--text)}
+.activity-time{font-size:10px;color:var(--text3);margin-left:auto;font-family:var(--mono)}
+.activity-desc{font-size:12px;color:var(--text2);line-height:1.5;word-break:break-all}
+.activity-owner-chip{font-size:10px;color:var(--text3);background:var(--surface2);border-radius:10px;padding:1px 7px}
+
+.activity-add-form{background:var(--surface2);border-radius:10px;padding:12px;margin-top:4px;display:flex;flex-direction:column;gap:8px}
+.activity-type-btns{display:flex;gap:6px;flex-wrap:wrap}
+.act-type-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:#fff;font-size:11px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .15s;display:flex;align-items:center;gap:4px}
+.act-type-btn:hover{border-color:var(--accent);color:var(--accent)}
+.act-type-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);font-weight:600}
+.activity-textarea{border:1px solid var(--border2);border-radius:7px;padding:8px 10px;font-size:12px;font-family:var(--sans);resize:none;outline:none;line-height:1.5;background:#fff}
+.activity-textarea:focus{border-color:var(--accent)}
+.activity-form-footer{display:flex;align-items:center;gap:8px;justify-content:flex-end}
+.activity-empty{text-align:center;padding:32px 0;color:var(--text3);font-size:12px}
+/* 연락처 카드 */
+.contact-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;transition:box-shadow .15s,border-color .15s;cursor:pointer}
+.contact-card:hover{box-shadow:var(--shadow-hover);border-color:var(--border2)}
+.contact-avatar-lg{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.contact-name{font-size:13px;font-weight:700;margin-bottom:2px}
+.contact-title-text{font-size:11px;color:var(--text3)}
+.contact-deals-row{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.contact-deal-chip{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:var(--surface2);border-radius:6px;font-size:11px}
+.contacts-grid-inner{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+/* 필터 배너 아래 공간 확보 */
+.banner-offset{margin-top:44px}
+.excel-menu-item{padding:7px 10px;font-size:12px;border-radius:6px;cursor:pointer;color:var(--text);transition:background .12s}
+.excel-menu-item:hover{background:var(--surface2)}
+</style>
+</head>
+<body>
+
+<div class="topbar" style="position:relative">
+  <div class="logo">
+    <div class="logo-mark">20</div>
+    <div class="logo-name">HYERIM</div>
+  </div>
+  <div class="breadcrumb">
+    <span>Acme Corp</span>
+    <span class="sep">/</span>
+    <span class="cur">💼 영업기회</span>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-ghost">🔗 공유</button>
+    <div style="position:relative;display:inline-block" id="excelMenuWrap">
+  <button class="btn btn-ghost" onclick="toggleExcelMenu()">⬇ 내려받기 ▾</button>
+  <div id="excelMenu" style="display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid var(--border);border-radius:10px;padding:6px;z-index:600;min-width:200px;box-shadow:var(--shadow-hover)">
+    <div style="padding:4px 8px;font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.04em">영업기회</div>
+    <div class="excel-menu-item" onclick="exportExcel('all')">📋 전체 목록</div>
+    <div class="excel-menu-item" onclick="exportExcel('mine')">👤 내 담당 목록</div>
+    <div class="excel-menu-item" onclick="exportExcel('filtered')">🔍 현재 필터 적용 목록</div>
+    <div style="border-top:1px solid var(--border);margin:4px 0"></div>
+    <div style="padding:4px 8px;font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.04em">대시보드</div>
+    <div class="excel-menu-item" onclick="exportExcel('dashboard')">📊 대시보드 요약</div>
+  </div>
+</div>
+    <button class="btn btn-primary" onclick="openModal()">+ 새 딜</button>
+    <div class="avatar" onclick="toggleUserMenu()" id="avatarBtn">H</div>
+<div id="userMenu" style="display:none;position:absolute;top:44px;right:20px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px;z-index:500;min-width:140px;box-shadow:var(--shadow-hover)">
+  <div style="padding:6px 10px;font-size:12px;color:var(--text2);border-bottom:1px solid var(--border);margin-bottom:4px" id="userMenuName">혜림님</div>
+  <div onclick="logoutUser()" style="padding:6px 10px;font-size:12px;cursor:pointer;border-radius:6px;color:var(--red)" onmouseover="this.style.background='#fff1f2'" onmouseout="this.style.background=''">로그아웃</div>
+</div>
+  </div>
+</div>
+
+<div class="subheader">
+  <div class="subheader-top">
+   <span style="font-size:16px">💼</span>
+<span class="page-title" id="pageTitle" ondblclick="editPageTitle()" title="더블클릭으로 편집" style="cursor:pointer">영업기회</span>
+    <span class="total-badge" id="totalBadge">총 16건</span>
+    <div class="pipeline-total">파이프라인 총액 <span id="totalAmt"></span></div>
+  </div>
+  <div class="subheader-tabs">
+   <div class="stab on" onclick="switchTab('all',this)">전체</div>
+    <div class="stab" onclick="switchTab('mine',this)">내 담당</div>
+    <div class="stab" onclick="switchTab('dashboard',this)">📊 대시보드</div>
+<div class="stab" onclick="switchNav('companies')">🏢 거래처</div>
+    <div class="stab" onclick="switchNav('contacts')">👤 연락처</div>
+  </div>
+  <div class="subheader-filters" id="filterBar">
+    <!-- 고급 필터 칩들 -->
+    <div class="chip" id="chip-thismonth" onclick="toggleAdvFilter('thismonth')">📅 이번 달 마감</div>
+    <div class="chip" id="chip-bigdeal" onclick="toggleAdvFilter('bigdeal')">💰 5천만원 이상</div>
+    <div class="chip" id="chip-warn" onclick="toggleAdvFilter('warn')">⚠️ 마감 임박</div>
+    <div class="chip-sep"></div>
+    <div style="margin-left:auto"></div>
+    <div class="view-toggle" id="viewToggle">
+  <div class="view-btn on" id="vbtn-kanban" onclick="switchView('kanban')" title="칸반">⊞</div>
+  <div class="view-btn" id="vbtn-table" onclick="switchView('table')" title="목록">☰</div>
+</div>
+  </div>
+</div>
+
+<!-- 칸반 보드 -->
+<div class="board-wrap" id="board" style="flex:1"></div>
+
+<!-- 소팅 뷰 컨테이너 -->
+<div class="sort-view" id="sortView"></div>
+<!-- 대시보드 뷰 -->
+<div id="dashView" style="display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 24px;background:var(--bg);min-height:0"></div>
+<div class="summary-bar" id="summaryBar"></div>
+
+<!-- 거래처 뷰 -->
+<div id="companiesView" style="display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 24px;background:var(--bg);min-height:0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="font-size:15px;font-weight:700">🏢 거래처 목록</div>
+    <button class="btn btn-primary" onclick="openAddCompanyModal()">+ 거래처 추가</button>
+  </div>
+  <div id="companiesTable"></div>
+</div>
+
+<!-- 연락처 뷰 -->
+<div id="contactsView" style="display:none;flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 24px;background:var(--bg);min-height:0">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="font-size:15px;font-weight:700">👤 연락처</div>
+    <button class="btn btn-primary" onclick="openAddContactModal()">+ 연락처 추가</button>
+  </div>
+  <div id="contactsSearch" style="margin-bottom:12px">
+    <input id="contactSearchInput" placeholder="이름, 회사, 직책으로 검색..." style="width:100%;max-width:360px;padding:7px 12px;border:1px solid var(--border2);border-radius:8px;font-size:13px;font-family:var(--sans);outline:none" oninput="renderContacts()" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border2)'"/>
+  </div>
+  <div id="contactsGrid"></div>
+</div>
+
+<!-- 마감 임박 알림 배너 -->
+<div id="deadlineBanner" style="display:none;position:fixed;top:52px;left:0;right:0;z-index:800;background:linear-gradient(90deg,#dc2626,#ea580c);color:#fff;padding:10px 20px;display:none;align-items:center;gap:10px;font-size:12px;box-shadow:0 4px 12px rgba(220,38,38,.3)">
+  <span style="font-size:16px">⚠️</span>
+  <span id="deadlineBannerText"></span>
+  <button onclick="document.getElementById('deadlineBanner').style.display='none'" style="margin-left:auto;background:rgba(255,255,255,.2);border:none;border-radius:5px;color:#fff;padding:3px 10px;font-size:11px;cursor:pointer;font-family:var(--sans)">닫기</button>
+  <button onclick="document.getElementById('deadlineBanner').style.display='none';switchTab('dashboard',document.querySelectorAll(\'.stab\')[2])" style="background:rgba(255,255,255,.2);border:none;border-radius:5px;color:#fff;padding:3px 10px;font-size:11px;cursor:pointer;font-family:var(--sans)">대시보드 보기 →</button>
+</div>
+
+<!-- 거래처 추가 모달 -->
+<div class="modal-overlay" id="companyModal">
+  <div class="modal">
+    <div class="modal-title">+ 새 거래처 추가</div>
+    <label>회사명<input id="cm-name" placeholder="예: 삼성SDS"/></label>
+    <label>업종<input id="cm-industry" placeholder="예: IT서비스"/></label>
+    <label>담당자명<input id="cm-contact" placeholder="예: 홍길동 팀장"/></label>
+    <label>연락처<input id="cm-phone" placeholder="예: 010-1234-5678"/></label>
+    <label>이메일<input id="cm-email" placeholder="예: hong@samsung.com"/></label>
+    <label>메모<input id="cm-note" placeholder="예: 연간 계약 우선 고려"/></label>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddCompanyModal()">취소</button>
+      <button class="btn btn-primary" onclick="submitCompany()">추가</button>
+    </div>
+  </div>
+</div>
+<!-- 연락처 추가 모달 -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal">
+    <div class="modal-title">👤 연락처 추가</div>
+    <label>이름<input id="ct-name" placeholder="예: 홍길동"/></label>
+    <label>직책<input id="ct-title" placeholder="예: IT전략팀 팀장"/></label>
+    <label>회사<input id="ct-company" placeholder="예: 삼성SDS"/></label>
+    <label>연락처<input id="ct-phone" placeholder="예: 010-1234-5678"/></label>
+    <label>이메일<input id="ct-email" placeholder="예: hong@samsung.com"/></label>
+    <label>메모<input id="ct-note" placeholder="예: 의사결정권자, 연말 예산 집행 가능성 높음"/></label>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddContactModal()">취소</button>
+      <button class="btn btn-primary" onclick="submitContact()">추가</button>
+    </div>
+  </div>
+</div>
+<!-- 연락처 편집 모달 -->
+<div class="modal-overlay" id="contactEditModal">
+  <div class="modal">
+    <div class="modal-title">✏️ 연락처 수정</div>
+    <input type="hidden" id="ce-id"/>
+    <label>이름<input id="ce-name"/></label>
+    <label>직책<input id="ce-title"/></label>
+    <label>회사<input id="ce-company"/></label>
+    <label>연락처<input id="ce-phone"/></label>
+    <label>이메일<input id="ce-email"/></label>
+    <label>메모<input id="ce-note"/></label>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('contactEditModal').classList.remove('show')">취소</button>
+      <button class="btn btn-primary" onclick="submitEditContact()">저장</button>
+    </div>
+  </div>
+</div>
+<!-- 딜 추가 모달 -->
+<div class="modal-overlay" id="dealModal">
+  <div class="modal">
+    <div class="modal-title">+ 새 딜 추가</div>
+    <label>딜 이름<input id="m-title" placeholder="예: ERP 도입 검토"/></label>
+    <label>회사명<input id="m-company" placeholder="예: 삼성SDS"/></label>
+    <label>금액 (만원)<input id="m-amount" type="number" placeholder="예: 3200"/></label>
+    <label>단계<select id="m-stage">
+      <option value="contact">초기 접촉</option>
+      <option value="qualify">니즈 파악</option>
+      <option value="propose">제안 단계</option>
+      <option value="demo">데모·검토</option>
+      <option value="negotiate">협상</option>
+      <option value="closed">계약 완료</option>
+    </select></label>
+    <label>마감일<input id="m-date" type="date"/></label>
+    <label>담당자 (쉼표 구분)<input id="m-owners" placeholder="예: 김, 이"/></label>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="submitDeal()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- 딜 상세 모달 -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-modal">
+    <div class="detail-header">
+      <div id="d-stage-badge" class="detail-stage-badge"></div>
+      <div id="d-title" class="detail-title"></div>
+      <div class="detail-close" onclick="closeDetailById()">✕</div>
+    </div>
+    <div class="activity-tab-bar">
+      <div class="activity-tab on" data-tab="info" onclick="switchDetailTab('info', actDetailDealId)">딜 정보</div>
+      <div class="activity-tab" data-tab="activity" onclick="switchDetailTab('activity', actDetailDealId)">활동 로그 <span id="actBadge" style="font-family:var(--mono);font-size:10px;color:var(--text3)"></span></div>
+    </div>
+    <div id="detailInfoSection" class="detail-body">
+      <div class="detail-section">
+        <div class="detail-section-title">금액</div>
+        <div id="d-amount" class="detail-amount-big"></div>
+        <div class="detail-progress-wrap">
+          <div class="detail-progress-label"><span>진행률</span><span id="d-prog-pct"></span></div>
+          <div class="detail-progress-bar"><div id="d-prog-fill" class="detail-progress-fill"></div></div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">딜 정보</div>
+        <div class="detail-row"><span class="detail-row-label">회사</span><span id="d-company" class="detail-row-value"></span></div>
+        <div class="detail-row"><span class="detail-row-label">마감일</span><span id="d-date" class="detail-row-value"></span></div>
+        <div class="detail-row"><span class="detail-row-label">태그</span><span id="d-tag" class="detail-row-value"></span></div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-section-title">담당자</div>
+        <div id="d-owners" class="detail-owners-row"></div>
+      </div>
+      <div id="d-note-section" class="detail-section" style="display:none">
+        <div class="detail-section-title">노트</div>
+        <div id="d-note" style="font-size:12px;color:var(--text2);line-height:1.6;background:var(--surface2);border-radius:8px;padding:10px 12px"></div>
+      </div>
+    </div>
+    <div id="detailActivitySection" class="detail-body" style="display:none">
+      <div id="activityLogArea"></div>
+    </div>
+    <div class="detail-footer">
+      <button class="btn btn-ghost" onclick="closeDetailById()">닫기</button>
+      <button class="btn btn-primary" onclick="closeDetailById();openEditModal(actDetailDealId)">✏️ 수정</button>
+    </div>
+  </div>
+</div>
+<!-- 딜 편집 모달 -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">✏ 딜 편집</div>
+    <input type="hidden" id="m-edit-id"/>
+    <label>딜 이름<input id="m-edit-title"/></label>
+    <label>회사명<input id="m-edit-company"/></label>
+    <label>금액 (만원)<input id="m-edit-amount" type="number"/></label>
+    <label>단계<select id="m-edit-stage">
+      <option value="contact">초기 접촉</option>
+      <option value="qualify">니즈 파악</option>
+      <option value="propose">제안 단계</option>
+      <option value="demo">데모·검토</option>
+      <option value="negotiate">협상</option>
+      <option value="closed">계약 완료</option>
+    </select></label>
+    <label>마감일<input id="m-edit-date" type="date"/></label>
+    <label>담당자 (쉼표 구분)<input id="m-edit-owners"/></label>
+    <label>메모<input id="m-edit-note"/></label>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEditModal()">취소</button>
+      <button class="btn btn-primary" onclick="submitEdit()">저장</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+let currentTab = 'all'; // 현재 탭 상태
+const MY_INITIAL = '이'; // ← 본인 이름 첫 글자로 바꾸세요
+
+// 고급 필터 상태
+let advFilters = { thismonth: false, bigdeal: false, warn: false };
+
+function toggleAdvFilter(key){
+  advFilters[key] = !advFilters[key];
+  document.getElementById('chip-'+key).classList.toggle('on', advFilters[key]);
+  if(currentView === 'kanban') renderAll();
+  else renderDateView();
+}
+
+function applyAdvFilters(deals){
+  const today = new Date();
+  return deals.filter(d => {
+    if(advFilters.thismonth){
+      const dd = new Date(d.date.replaceAll('.','-'));
+      if(!(dd.getFullYear()===today.getFullYear() && dd.getMonth()===today.getMonth())) return false;
+    }
+    if(advFilters.bigdeal){
+      if(d.amtRaw < 5000) return false;
+    }
+    if(advFilters.warn){
+      if(!d.warn) return false;
+    }
+    return true;
+  });
+}
+
+function switchTab(tab, el){
+  currentTab = tab;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+
+  const board = document.getElementById('board');
+  const sortView = document.getElementById('sortView');
+  const dashView = document.getElementById('dashView');
+  const summaryBar = document.getElementById('summaryBar');
+  const filterBar = document.getElementById('filterBar');
+  const contactsView = document.getElementById('contactsView');
+  const companiesView = document.getElementById('companiesView');
+  if(contactsView) contactsView.style.display='none';
+  if(companiesView) companiesView.style.display='none';
+
+  if(tab === 'dashboard'){
+    board.style.display = 'none';
+    sortView.style.display = 'none';
+    summaryBar.style.display = 'none';
+    dashView.style.display = 'block';
+    document.getElementById('viewToggle').style.display = 'none';
+    if(filterBar) filterBar.style.display = 'none';
+    renderDashboard();
+} else {
+    board.style.display = currentView === 'kanban' ? 'flex' : 'none';
+    sortView.style.display = currentView === 'table' ? 'flex' : 'none';
+    summaryBar.style.display = '';
+    dashView.style.display = 'none';
+    document.getElementById('viewToggle').style.display = '';
+    if(filterBar) filterBar.style.display = 'flex';
+    if(currentView === 'table') renderDateView(); else renderAll();
+  }
+}
+/* ────────────────────────────────
+   데이터
+──────────────────────────────── */
+const _saved = localStorage.getItem('hyerim_crm_cols');
+const COLS = _saved ? JSON.parse(_saved) : [
+  {id:'contact', name:'초기 접촉', dotColor:'#4f6ef7', cardColor:'c-blue', pColor:'#4f6ef7', deals:[
+    {id:'d1',title:'ERP 도입 검토',company:'삼성SDS',coColor:'#1d4ed8',amount:'3,200만',amtRaw:3200,tag:'신규',tagCls:'tag-blue',owners:['이','김'],progress:15,date:'2026.04.30',warn:false,note:'초기 미팅 완료, 담당자 연락 예정'},
+    {id:'d2',title:'HR 솔루션 문의',company:'현대오토에버',coColor:'#0369a1',amount:'1,800만',amtRaw:1800,tag:'인바운드',tagCls:'tag-teal',owners:['박'],progress:10,date:'2026.05.20',warn:false,note:'인바운드 문의, 전화 미팅 예약됨'},
+    {id:'d3',title:'클라우드 전환 PJT',company:'LG CNS',coColor:'#7c3aed',amount:'8,000만',amtRaw:8000,tag:'대형',tagCls:'tag-purple',owners:['김','이','박'],progress:5,date:'2026.06.01',warn:false,note:'대형 프로젝트, 여러 팀 협업 필요'},
+  ]},
+  {id:'qualify', name:'니즈 파악', dotColor:'#d97706', cardColor:'c-yellow', pColor:'#d97706', deals:[
+    {id:'d4',title:'CRM 도입 제안',company:'카카오',coColor:'#b45309',amount:'4,800만',amtRaw:4800,tag:'관심 높음',tagCls:'tag-yellow',owners:['이'],progress:35,date:'2026.04.15',warn:true,note:'고객 관심도 높음, 내부 예산 확인 중'},
+    {id:'d5',title:'영업관리 시스템',company:'쿠팡',coColor:'#dc2626',amount:'2,200만',amtRaw:2200,tag:'경쟁 중',tagCls:'tag-orange',owners:['박'],progress:28,date:'2026.04.25',warn:false,note:'경쟁사 2곳과 동시 검토 중'},
+    {id:'d6',title:'데이터 분석 툴',company:'배달의민족',coColor:'#2563eb',amount:'1,500만',amtRaw:1500,tag:'신규',tagCls:'tag-blue',owners:['김'],progress:20,date:'2026.05.10',warn:false,note:'데이터팀 요구사항 수집 중'},
+  ]},
+  {id:'propose', name:'제안 단계', dotColor:'#ea580c', cardColor:'c-orange', pColor:'#ea580c', deals:[
+    {id:'d7',title:'통합 마케팅 플랫폼',company:'네이버',coColor:'#16a34a',amount:'1.2억',amtRaw:12000,tag:'대형',tagCls:'tag-purple',owners:['김','이'],progress:55,date:'2026.04.10',warn:true,note:'제안서 제출 완료, 내부 검토 중'},
+    {id:'d8',title:'고객센터 자동화',company:'SKT',coColor:'#e11d48',amount:'6,500만',amtRaw:6500,tag:'핵심',tagCls:'tag-orange',owners:['이'],progress:48,date:'2026.04.18',warn:false,note:'AI 자동화 솔루션 제안 완료'},
+    {id:'d9',title:'물류 트래킹 시스템',company:'CJ대한통운',coColor:'#065f46',amount:'3,800만',amtRaw:3800,tag:'재계약',tagCls:'tag-green',owners:['박'],progress:60,date:'2026.04.22',warn:false,note:'기존 계약 갱신, 기능 확장 포함'},
+  ]},
+  {id:'demo', name:'데모·검토', dotColor:'#7c3aed', cardColor:'c-purple', pColor:'#7c3aed', deals:[
+    {id:'d10',title:'금융 분석 대시보드',company:'KB국민은행',coColor:'#c2410c',amount:'9,000만',amtRaw:9000,tag:'핵심',tagCls:'tag-orange',owners:['김','박'],progress:70,date:'2026.04.08',warn:true,note:'데모 세션 2회 완료, 의사결정 대기'},
+    {id:'d11',title:'제조 MES 연동',company:'포스코',coColor:'#1e40af',amount:'5,200만',amtRaw:5200,tag:'기술검토',tagCls:'tag-blue',owners:['이'],progress:65,date:'2026.04.14',warn:true,note:'기술 검토 위원회 통과, 최종 승인 대기'},
+  ]},
+  {id:'negotiate', name:'협상', dotColor:'#0d9488', cardColor:'c-teal', pColor:'#0d9488', deals:[
+    {id:'d12',title:'글로벌 CRM 확장',company:'삼성전자',coColor:'#1d4ed8',amount:'2.1억',amtRaw:21000,tag:'전략',tagCls:'tag-purple',owners:['김','이','박'],progress:85,date:'2026.04.05',warn:true,note:'글로벌 확장 계약, 법무팀 검토 중'},
+    {id:'d13',title:'공급망 최적화 PJT',company:'LG전자',coColor:'#7c3aed',amount:'1.4억',amtRaw:14000,tag:'대형',tagCls:'tag-purple',owners:['이'],progress:80,date:'2026.04.12',warn:true,note:'최종 조건 협상 단계'},
+  ]},
+  {id:'closed', name:'계약 완료', dotColor:'#16a34a', cardColor:'c-green', pColor:'#16a34a', deals:[
+    {id:'d14',title:'인사관리 시스템',company:'롯데케미칼',coColor:'#dc2626',amount:'7,800만',amtRaw:7800,tag:'완료',tagCls:'tag-green',owners:['박'],progress:100,date:'2026.03.31',warn:false,note:'계약 서명 완료, 구축 착수'},
+    {id:'d15',title:'디지털 전환 1차',company:'한화시스템',coColor:'#0369a1',amount:'9,500만',amtRaw:9500,tag:'완료',tagCls:'tag-green',owners:['김','이'],progress:100,date:'2026.03.15',warn:false,note:'1차 프로젝트 완료, 2차 검토 예정'},
+  ]},
+];
+
+const AV_COLORS = ['#4f6ef7','#7c3aed','#16a34a','#ea580c','#dc2626','#0d9488'];
+const aColor = i => AV_COLORS[i % AV_COLORS.length];
+
+function amtStr(raw){
+ if(raw >= 10000) return (raw/10000).toFixed(1)+'억';
+return raw.toLocaleString()+'만';
+}
+function colAmt(col){ return amtStr(col.deals.reduce((s,d)=>s+d.amtRaw,0)); }
+function allDeals(){
+  const base = COLS.flatMap(c=>c.deals
+    .filter(d => currentTab !== 'mine' || d.owners.includes(MY_INITIAL))
+    .map(d=>({...d,stage:c.name,stageId:c.id,dotColor:c.dotColor,pColor:c.pColor,cardColor:c.cardColor})));
+  return applyAdvFilters(base);
+}
+
+/* ────────────────────────────────
+   카드 HTML
+──────────────────────────────── */
+function cardHTML(d, col){
+  const owners = d.owners.map((o,i)=>`<div class="deal-avatar-sm" style="background:${aColor(i)}">${o}</div>`).join('');
+  return `
+  <div class="deal-card ${col.cardColor}" data-deal="${d.id}" data-col="${col.id}" onclick="openDetail('${d.id}')">
+    <div class="deal-top">
+      <div class="deal-title">${d.title}</div>
+      <div class="deal-menu" onclick="event.stopPropagation()">⋯</div>
+      <div class="deal-delete" onclick="event.stopPropagation();deleteDeal('${col.id}','${d.id}')">✕</div>
+    </div>
+    <div class="deal-company">
+      <div class="co-avatar" style="background:${d.coColor}">${d.company[0]}</div>
+      <span class="co-name">${d.company}</span>
+    </div>
+    <div class="deal-amount">${d.amount}</div>
+    <div class="deal-footer">
+      <span class="deal-tag ${d.tagCls}">${d.tag}</span>
+      <div class="deal-avatars">${owners}</div>
+    </div>
+    <div class="deal-progress">
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${d.progress}%;background:${col.pColor}"></div>
+      </div>
+    </div>
+    <div class="deal-date${d.warn?' warn':''}">📅 ${d.date}${d.warn?' · 마감 임박':''}</div>
+  </div>`;
+}
+
+/* ────────────────────────────────
+   렌더 (칸반)
+──────────────────────────────── */
+let currentView = 'kanban';
+let amtSortDir = 'desc'; // 금액 정렬 방향
+/* ────────────────────────────────
+   활동 로그
+──────────────────────────────── */
+// 기존 딜 데이터에 activities 필드 초기화 (이미 있으면 유지)
+function ensureActivities(){
+  COLS.forEach(col => col.deals.forEach(d => {
+    if(!d.activities) d.activities = [];
+  }));
+}
+ensureActivities();
+
+const ACT_TYPES = [
+  {id:'call',    label:'전화',   icon:'📞', cls:'act-call'},
+  {id:'email',   label:'이메일', icon:'📧', cls:'act-email'},
+  {id:'meeting', label:'미팅',   icon:'🤝', cls:'act-meeting'},
+  {id:'note',    label:'메모',   icon:'📝', cls:'act-note'},
+];
+
+let actDetailDealId = null; // 현재 상세모달에 열린 딜 ID
+let actSelectedType = 'call';
+let actDetailTab = 'info'; // 'info' | 'activity'
+
+function timeAgo(isoStr){
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const m = Math.floor(diff/60000);
+  if(m < 1) return '방금 전';
+  if(m < 60) return `${m}분 전`;
+  const h = Math.floor(m/60);
+  if(h < 24) return `${h}시간 전`;
+  const day = Math.floor(h/24);
+  if(day < 8) return `${day}일 전`;
+  return new Date(isoStr).toLocaleDateString('ko-KR',{month:'short',day:'numeric'});
+}
+
+function renderActivityLog(dealId){
+  const d = findDeal(dealId);
+  if(!d) return;
+  const acts = (d.activities || []).slice().reverse(); // 최신 먼저
+
+  const typeButtons = ACT_TYPES.map(t =>
+    `<button class="act-type-btn${actSelectedType===t.id?' on':''}" onclick="actSelectedType='${t.id}';renderActivityLog('${dealId}')">${t.icon} ${t.label}</button>`
+  ).join('');
+
+  const logItems = acts.length === 0
+    ? `<div class="activity-empty">📋 아직 활동 기록이 없어요<br><span style="font-size:11px">아래에서 첫 활동을 추가해보세요</span></div>`
+    : acts.map(a => {
+        const t = ACT_TYPES.find(x=>x.id===a.type) || ACT_TYPES[3];
+        return `<div class="activity-item">
+          <div class="activity-icon ${t.cls}">${t.icon}</div>
+          <div class="activity-content">
+            <div class="activity-header">
+              <span class="activity-type">${t.label}</span>
+              <span class="activity-owner-chip">${a.owner||'나'}</span>
+              <span class="activity-time">${timeAgo(a.createdAt)}</span>
+            </div>
+            <div class="activity-desc">${a.desc.replace(/\n/g,'<br>')}</div>
+          </div>
+        </div>`;
+      }).join('');
+
+  document.getElementById('activityLogArea').innerHTML = `
+    <div class="activity-log">${logItems}</div>
+    <div class="activity-add-form">
+      <div class="activity-type-btns">${typeButtons}</div>
+      <textarea id="actTextarea" class="activity-textarea" rows="2" placeholder="활동 내용을 입력하세요..."></textarea>
+      <div class="activity-form-footer">
+        <span style="font-size:11px;color:var(--text3)">Enter: 줄바꿈 / Ctrl+Enter: 저장</span>
+        <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="renderActivityLog('${dealId}')">취소</button>
+        <button class="btn btn-primary" style="font-size:11px;padding:4px 10px" onclick="submitActivity('${dealId}')">저장</button>
+      </div>
+    </div>`;
+
+  // Ctrl+Enter 단축키
+  setTimeout(()=>{
+    const ta = document.getElementById('actTextarea');
+    if(ta) ta.addEventListener('keydown', e=>{
+      if(e.key==='Enter' && (e.ctrlKey||e.metaKey)){e.preventDefault();submitActivity(dealId);}
+    });
+  }, 0);
+}
+
+function submitActivity(dealId){
+  const ta = document.getElementById('actTextarea');
+  const desc = ta ? ta.value.trim() : '';
+  if(!desc){ta && ta.focus();return;}
+  const d = findDeal(dealId);
+  if(!d) return;
+  if(!d.activities) d.activities = [];
+  d.activities.push({
+    id: 'a'+Date.now(),
+    type: actSelectedType,
+    desc,
+    owner: MY_INITIAL || '나',
+    createdAt: new Date().toISOString()
+  });
+  localStorage.setItem('hyerim_crm_cols', JSON.stringify(COLS));
+  renderActivityLog(dealId);
+  // 카드의 마지막 활동 표시 업데이트
+  renderAll();
+  showToast('활동이 기록되었습니다');
+}
+
+function switchDetailTab(tab, dealId){
+  actDetailTab = tab;
+  document.querySelectorAll('.activity-tab').forEach(el=>{
+    el.classList.toggle('on', el.dataset.tab===tab);
+  });
+  document.getElementById('detailInfoSection').style.display = tab==='info' ? '' : 'none';
+  document.getElementById('detailActivitySection').style.display = tab==='activity' ? '' : 'none';
+  if(tab==='activity') renderActivityLog(dealId);
+}
+function renderAll(){
+  localStorage.setItem('hyerim_crm_cols', JSON.stringify(COLS));  // ← 이 줄 추가
+  const filteredCols = COLS.map(col => ({
+  ...col,
+deals: applyAdvFilters(currentTab === 'mine'
+  ? col.deals.filter(d => d.owners.includes(MY_INITIAL))
+  : currentTab === 'active'
+  ? col.deals.filter(d => d.stageId !== 'closed')
+  : col.deals)
+}));
+document.getElementById('board').innerHTML = filteredCols.map(col=>`
+    <div class="col" data-col="${col.id}">
+      <div class="col-header">
+        <div class="col-dot" style="background:${col.dotColor}"></div>
+        <span class="col-name">${col.name}</span>
+        <span class="col-count">${col.deals.length}</span>
+        <span class="col-amount">${colAmt(col)}</span>
+        <div class="col-add">+</div>
+      </div>
+      <div class="col-body" data-col="${col.id}">
+        ${col.deals.map(d=>cardHTML(d,col)).join('')}
+        <div class="add-card" onclick="openModal('${col.id}')">+ 딜 추가</div>
+      </div>
+    </div>
+  `).join('');
+
+  const total = COLS.reduce((s,c)=>s+c.deals.length,0);
+  const totalRaw = COLS.reduce((s,c)=>s+c.deals.reduce((ss,d)=>ss+d.amtRaw,0),0);
+  document.getElementById('totalBadge').textContent = `총 ${total}건`;
+  document.getElementById('totalAmt').textContent = amtStr(totalRaw);
+  document.getElementById('summaryBar').innerHTML =
+    COLS.map(c=>`<div class="sum-item"><div class="sum-dot" style="background:${c.dotColor}"></div>${c.name}<span class="sum-val">${colAmt(c)}</span></div>`).join('')+
+    `<div style="margin-left:auto;color:var(--text3);font-size:10px">방금 전 업데이트</div>`;
+
+  bindDrag();
+}
+/* ────────────────────────────────
+   대시보드 렌더
+──────────────────────────────── */
+function renderDashboard(){
+  const all = allDeals();
+  const totalRaw = all.reduce((s,d)=>s+d.amtRaw,0);
+  const closed = all.filter(d=>d.stageId==='closed');
+  const closedRaw = closed.reduce((s,d)=>s+d.amtRaw,0);
+  const warnDeals = all.filter(d=>d.warn);
+
+  // 담당자별 집계
+  const ownerMap = {};
+  all.forEach(d=>d.owners.forEach(o=>{
+    if(!ownerMap[o]) ownerMap[o]={name:o,count:0,raw:0,closed:0};
+    ownerMap[o].count++;
+    ownerMap[o].raw+=d.amtRaw;
+    if(d.stageId==='closed') ownerMap[o].closed++;
+  }));
+  const owners = Object.values(ownerMap).sort((a,b)=>b.raw-a.raw);
+
+  // 단계별 집계
+  const stageRows = COLS.map(c=>({
+    name:c.name, dot:c.dotColor,
+    count:c.deals.length,
+    raw:c.deals.reduce((s,d)=>s+d.amtRaw,0)
+  }));
+  const maxRaw = Math.max(...stageRows.map(r=>r.raw),1);
+
+  document.getElementById('dashView').innerHTML = `
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+    ${[
+      {label:'전체 파이프라인',val:amtStr(totalRaw),sub:`딜 ${all.length}건`,color:'#4f6ef7'},
+      {label:'계약 완료',val:amtStr(closedRaw),sub:`${closed.length}건 클로즈`,color:'#16a34a'},
+      {label:'진행 중 딜',val:all.filter(d=>d.stageId!=='closed').length+'건',sub:'클로즈 제외',color:'#d97706'},
+      {label:'마감 임박',val:warnDeals.length+'건',sub:'주의 필요',color:'#dc2626'},
+    ].map(k=>`
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px">
+        <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">${k.label}</div>
+        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:${k.color}">${k.val}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">${k.sub}</div>
+      </div>`).join('')}
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:12px">
+    <!-- 단계별 파이프라인 -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:14px">단계별 파이프라인</div>
+      ${stageRows.map(r=>`
+        <div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+            <span style="display:flex;align-items:center;gap:6px">
+              <span style="width:7px;height:7px;border-radius:50%;background:${r.dot};display:inline-block"></span>
+              ${r.name}
+            </span>
+            <span style="font-family:var(--mono);color:var(--text2)">${amtStr(r.raw)} · ${r.count}건</span>
+          </div>
+          <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+            <div style="height:100%;background:${r.dot};border-radius:3px;width:${Math.round(r.raw/maxRaw*100)}%;transition:width .5s ease"></div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <!-- 담당자별 실적 -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:14px">담당자별 실적</div>
+      <div style="display:grid;grid-template-columns:1fr 60px 60px 56px;gap:4px">
+        <div style="font-size:10px;color:var(--text3);padding:4px 0;font-weight:600">담당자</div>
+        <div style="font-size:10px;color:var(--text3);padding:4px 0;font-weight:600;text-align:right">딜수</div>
+        <div style="font-size:10px;color:var(--text3);padding:4px 0;font-weight:600;text-align:right">완료</div>
+        <div style="font-size:10px;color:var(--text3);padding:4px 0;font-weight:600;text-align:right">금액</div>
+        ${owners.map((o,i)=>`
+        <div style="display:flex;align-items:center;gap:7px;padding:7px 0;border-top:1px solid var(--border)">
+          <div style="width:22px;height:22px;border-radius:50%;background:${aColor(i)};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0">${o.name}</div>
+          <span style="font-size:12px;font-weight:500">${o.name}</span>
+        </div>
+        <div style="font-family:var(--mono);font-size:12px;text-align:right;padding:7px 0;border-top:1px solid var(--border)">${o.count}</div>
+        <div style="font-family:var(--mono);font-size:12px;text-align:right;padding:7px 0;border-top:1px solid var(--border);color:var(--green)">${o.closed}</div>
+        <div style="font-family:var(--mono);font-size:11px;text-align:right;padding:7px 0;border-top:1px solid var(--border)">${amtStr(o.raw)}</div>
+        `).join('')}
+      </div>
+    </div>
+<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:12px">
+    <div style="font-size:12px;font-weight:700;margin-bottom:16px">📅 분기별 달성도</div>
+    ${(()=>{
+      const quarters = [
+        {label:'Q1 (1~3월)', months:[1,2,3]},
+        {label:'Q2 (4~6월)', months:[4,5,6]},
+        {label:'Q3 (7~9월)', months:[7,8,9]},
+        {label:'Q4 (10~12월)', months:[10,11,12]},
+      ];
+      const closedDeals = all.filter(d=>d.stageId==='closed');
+      const today = new Date();
+      const thisYear = today.getFullYear();
+      const currentQ = Math.ceil((today.getMonth()+1)/3);
+      return quarters.map((q,qi)=>{
+        const qDeals = closedDeals.filter(d=>{
+          const dt = new Date(d.date.replaceAll('.','-'));
+          return dt.getFullYear()===thisYear && q.months.includes(dt.getMonth()+1);
+        });
+        const qRaw = qDeals.reduce((s,d)=>s+d.amtRaw,0);
+        const target = 50000; // 목표 금액 (만원) — 필요에 따라 수정
+        const pct = Math.min(Math.round(qRaw/target*100),100);
+        const isCurrent = (qi+1)===currentQ;
+        const barColor = pct>=100?'#16a34a':isCurrent?'#4f6ef7':'#d97706';
+        return `
+        <div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:5px">
+            <span style="font-weight:${isCurrent?700:500};color:${isCurrent?'var(--text)':'var(--text2)'}">${q.label}${isCurrent?' 🔵':''}</span>
+            <span style="font-family:var(--mono);color:${barColor};font-weight:600">${amtStr(qRaw)} / ${amtStr(target)} (${pct}%)</span>
+          </div>
+          <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+            <div style="height:100%;background:${barColor};border-radius:4px;width:${pct}%;transition:width .6s ease"></div>
+          </div>
+        </div>`;
+      }).join('');
+    })()}
+  </div>
+<!-- Win Rate / 전환율 -->
+  <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:12px">
+    <div style="font-size:12px;font-weight:700;margin-bottom:4px">📊 단계별 전환율 (Win Rate)</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:16px">각 단계에서 다음 단계로 진행된 비율 — 40% 미만이면 병목 가능성</div>
+    ${(()=>{
+      const rates = calcWinRate();
+      return rates.map(r => {
+        const barColor = r.rate >= 60 ? '#16a34a' : r.rate >= 40 ? '#d97706' : '#dc2626';
+        const badge = r.rate >= 60
+          ? `<span style="font-size:10px;background:#dcfce7;color:#16a34a;padding:2px 7px;border-radius:10px;font-weight:600">양호</span>`
+          : r.rate >= 40
+          ? `<span style="font-size:10px;background:#fef9c3;color:#a16207;padding:2px 7px;border-radius:10px;font-weight:600">보통</span>`
+          : `<span style="font-size:10px;background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:10px;font-weight:600">⚠ 병목</span>`;
+        return `
+        <div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:5px">
+            <span style="display:flex;align-items:center;gap:6px">
+              <span style="width:7px;height:7px;border-radius:50%;background:${r.dot};display:inline-block"></span>
+              <span style="color:var(--text2)">${r.from}</span>
+              <span style="color:var(--text3)">→</span>
+              <span style="font-weight:600">${r.to}</span>
+              <span style="color:var(--text3);font-size:10px">(${r.toCount}/${r.fromCount}건)</span>
+            </span>
+            <span style="display:flex;align-items:center;gap:8px">
+              ${badge}
+              <span style="font-family:var(--mono);font-weight:700;color:${barColor}">${r.rate}%</span>
+            </span>
+          </div>
+          <div style="height:7px;background:var(--surface2);border-radius:4px;overflow:hidden">
+            <div style="height:100%;background:${barColor};border-radius:4px;width:${r.rate}%;transition:width .6s ease"></div>
+          </div>
+        </div>`;
+      }).join('');
+    })()}
+  </div>
+  </div>`;
+}
+/* ────────────────────────────────
+   Win Rate / 전환율 계산
+──────────────────────────────── */
+function calcWinRate() {
+  // 각 단계별 딜 수 (현재 + 그 이후로 넘어간 딜 포함 추정)
+  // 실제 이동 로그가 없으므로 "현재 단계 이상에 있는 딜 수"로 누적 계산
+  const stageOrder = COLS.map(c => c.id);
+  const result = [];
+
+  for (let i = 0; i < COLS.length - 1; i++) {
+    const fromCol = COLS[i];
+    // '이 단계 이후에 있는 딜' = 현재 단계 index 이상인 컬럼의 딜 합계
+    const fromCount = COLS.slice(i).reduce((s, c) => s + c.deals.length, 0);
+    const toCount   = COLS.slice(i + 1).reduce((s, c) => s + c.deals.length, 0);
+    const rate = fromCount === 0 ? 0 : Math.round(toCount / fromCount * 100);
+    result.push({
+      from: fromCol.name,
+      to: COLS[i + 1].name,
+      fromCount,
+      toCount,
+      rate,
+      dot: fromCol.dotColor,
+      warning: rate < 40 && i > 0  // 중간 단계 전환율 40% 미만이면 경고
+    });
+  }
+  return result;
+}
+function switchView(mode){
+  ['kanban','table'].forEach(m=>{
+    const btn = document.getElementById('vbtn-'+m);
+    if(btn) btn.classList.toggle('on', m===mode);
+  });
+  if(mode==='kanban'){
+    currentView='kanban';
+    document.getElementById('board').style.display='flex';
+    document.getElementById('sortView').classList.remove('show');
+document.getElementById('sortView').style.display='none';
+    renderAll();
+  } else {
+    switchToTable();
+  }
+}
+function switchToTable(){
+  currentView='table';
+  document.getElementById('board').style.display='none';
+  document.getElementById('sortView').classList.add('show');
+document.getElementById('sortView').style.display='flex';
+  document.getElementById('vbtn-kanban') && document.getElementById('vbtn-kanban').classList.remove('on');
+  document.getElementById('vbtn-table') && document.getElementById('vbtn-table').classList.add('on');
+  renderDateView();
+}
+function switchToKanban(){ switchView('kanban'); }
+/* ────────────────────────────────
+   소팅 뷰
+──────────────────────────────── */
+function sortBy(key){
+  currentView = key;
+  document.getElementById('board').style.display = 'none';
+  const sv = document.getElementById('sortView');
+  sv.classList.add('show');
+
+  const chips = ['chip-kanban','chip-owner','chip-company','chip-amount','chip-date'];
+  chips.forEach(id=>{
+    const el = document.getElementById(id);
+    el.classList.remove('on','active-sort');
+  });
+  document.getElementById('chip-'+key).classList.add('on','active-sort');
+
+  if(key==='owner') renderOwnerView();
+  else if(key==='company') renderCompanyView();
+  else if(key==='amount') renderAmountView();
+  else if(key==='date') renderDateView();
+}
+
+function setActiveChip(chipId){
+  ['chip-kanban','chip-owner','chip-company','chip-amount','chip-date'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.classList.remove('on','active-sort');
+  });
+  document.getElementById(chipId).classList.add('on');
+}
+
+/* 담당자 뷰 */
+function renderOwnerView(){
+  const deals = allDeals();
+  // 담당자별 그룹
+  const ownerMap = {};
+  deals.forEach(d=>{
+    d.owners.forEach(o=>{
+      if(!ownerMap[o]) ownerMap[o]=[];
+      ownerMap[o].push(d);
+    });
+  });
+  const sorted = Object.entries(ownerMap).sort((a,b)=>a[0].localeCompare(b[0],'ko'));
+  const colorMap = {};
+  Object.keys(ownerMap).forEach((o,i)=>{ colorMap[o] = AV_COLORS[i%AV_COLORS.length]; });
+
+  const sv = document.getElementById('sortView');
+  sv.innerHTML = `<h3 style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text2)">👤 담당자별 딜 현황</h3>`+
+  sorted.map(([owner, ds])=>`
+    <div class="owner-group">
+      <div class="owner-group-header">
+        <div class="owner-av-lg" style="background:${colorMap[owner]}">${owner}</div>
+        <span class="owner-name-lg">${owner}</span>
+        <span class="owner-deal-count">(${ds.length}건 · ${amtStr(ds.reduce((s,d)=>s+d.amtRaw,0))})</span>
+      </div>
+      <div class="owner-cards-grid">
+        ${ds.map(d=>{
+          const col = COLS.find(c=>c.id===d.stageId)||COLS[0];
+          return `<div class="deal-card ${d.cardColor}" style="cursor:pointer" onclick="openDetail('${d.id}')">
+            <div class="deal-top"><div class="deal-title">${d.title}</div></div>
+            <div class="deal-company">
+              <div class="co-avatar" style="background:${d.coColor}">${d.company[0]}</div>
+              <span class="co-name">${d.company}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${d.dotColor}22;color:${d.dotColor};font-weight:600">${d.stage}</span>
+            </div>
+            <div class="deal-amount">${d.amount}</div>
+            <div class="deal-date${d.warn?' warn':''}">📅 ${d.date}${d.warn?' · 마감 임박':''}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+/* 회사 뷰 */
+function renderCompanyView(){
+  const deals = allDeals();
+  const coMap = {};
+  deals.forEach(d=>{
+    if(!coMap[d.company]) coMap[d.company] = {color:d.coColor, deals:[]};
+    coMap[d.company].deals.push(d);
+  });
+  const sorted = Object.entries(coMap).sort((a,b)=>a[0].localeCompare(b[0],'ko'));
+  const sv = document.getElementById('sortView');
+  sv.innerHTML = `<h3 style="font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text2)">🏢 회사별 딜 현황</h3>`+
+  sorted.map(([co, info])=>`
+    <div class="company-group">
+      <div class="company-group-header">
+        <div class="company-av-lg" style="background:${info.color}">${co[0]}</div>
+        <span class="company-name-lg">${co}</span>
+        <span class="owner-deal-count">(${info.deals.length}건 · ${amtStr(info.deals.reduce((s,d)=>s+d.amtRaw,0))})</span>
+      </div>
+      <div class="owner-cards-grid">
+        ${info.deals.map(d=>`
+          <div class="deal-card ${d.cardColor}" style="cursor:pointer" onclick="openDetail('${d.id}')">
+            <div class="deal-top"><div class="deal-title">${d.title}</div></div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+              <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${d.dotColor}22;color:${d.dotColor};font-weight:600">${d.stage}</span>
+            </div>
+            <div class="deal-amount">${d.amount}</div>
+            <div class="deal-footer">
+              <span class="deal-tag ${d.tagCls}">${d.tag}</span>
+              <div class="deal-avatars">${d.owners.map((o,i)=>`<div class="deal-avatar-sm" style="background:${aColor(i)}">${o}</div>`).join('')}</div>
+            </div>
+            <div class="deal-date${d.warn?' warn':''}">📅 ${d.date}${d.warn?' · 마감 임박':''}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+/* 금액 뷰 */
+function renderAmountView(dir){
+  if(dir) amtSortDir = dir;
+  const deals = allDeals().sort((a,b)=> amtSortDir==='desc' ? b.amtRaw-a.amtRaw : a.amtRaw-b.amtRaw);
+  const maxAmt = Math.max(...deals.map(d=>d.amtRaw));
+  const sv = document.getElementById('sortView');
+  sv.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <h3 style="font-size:13px;font-weight:600;color:var(--text2)">💰 금액순 딜 현황</h3>
+      <button class="sort-dir-btn ${amtSortDir==='desc'?'on':''}" onclick="renderAmountView('desc')">↓ 높은 순</button>
+      <button class="sort-dir-btn ${amtSortDir==='asc'?'on':''}" onclick="renderAmountView('asc')">↑ 낮은 순</button>
+    </div>
+    <div class="amount-table">
+      <div class="amount-row header-row">
+        <div>딜 이름</div>
+        <div>회사</div>
+        <div>금액</div>
+        <div>단계</div>
+        <div>담당자</div>
+      </div>
+      ${deals.map((d,i)=>`
+        <div class="amount-row" onclick="openDetail('${d.id}')">
+          <div style="font-weight:500;font-size:12px">${d.title}</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="co-avatar" style="background:${d.coColor};width:16px;height:16px;font-size:8px">${d.company[0]}</div>
+            <span style="font-size:11px;color:var(--text2)">${d.company}</span>
+          </div>
+          <div class="amount-bar-cell">
+            <div class="amt-mini-bar" style="width:${Math.round(d.amtRaw/maxAmt*80)+4}px;background:${d.dotColor}"></div>
+            <span style="font-family:var(--mono);font-size:11px;font-weight:600">${d.amount}</span>
+          </div>
+          <div><span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${d.dotColor}22;color:${d.dotColor};font-weight:600">${d.stage}</span></div>
+          <div style="display:flex;gap:3px">${d.owners.map((o,j)=>`<div class="deal-avatar-sm" style="background:${aColor(j)};margin-left:0;width:20px;height:20px;font-size:8px">${o}</div>`).join('')}</div>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+/* 마감일 뷰 */
+let tableSortKey = 'date', tableSortDir = 'asc';
+function tableSort(key){
+  if(tableSortKey===key) tableSortDir = tableSortDir==='asc'?'desc':'asc';
+  else { tableSortKey=key; tableSortDir='asc'; }
+  renderDateView();
+}
+function renderDateView(){
+  const deals = allDeals().sort((a,b)=>{
+  let va, vb;
+  if(tableSortKey==='amount'){va=a.amtRaw;vb=b.amtRaw;return tableSortDir==='asc'?va-vb:vb-va;}
+  if(tableSortKey==='progress'){va=a.progress;vb=b.progress;return tableSortDir==='asc'?va-vb:vb-va;}
+  if(tableSortKey==='owner'){va=a.owners[0]||'';vb=b.owners[0]||'';}
+  else if(tableSortKey==='stage'){va=a.stage;vb=b.stage;}
+  else if(tableSortKey==='company'){va=a.company;vb=b.company;}
+  else if(tableSortKey==='title'){va=a.title;vb=b.title;}
+  else{va=a.date;vb=b.date;}
+  return tableSortDir==='asc'?va.localeCompare(vb,'ko'):vb.localeCompare(va,'ko');
+});
+  const today = new Date();
+  function daysLeft(dateStr){
+    const d = new Date(dateStr.replaceAll('.','-'));
+    return Math.round((d-today)/(1000*60*60*24));
+  }
+  function dayChip(days){
+    if(days<0) return `<span class="dl-days-chip dl-past">D+${Math.abs(days)}</span>`;
+    if(days<=7) return `<span class="dl-days-chip dl-danger">D-${days}</span>`;
+    if(days<=14) return `<span class="dl-days-chip dl-warn">D-${days}</span>`;
+    return `<span class="dl-days-chip dl-ok">D-${days}</span>`;
+  }
+  const sv = document.getElementById('sortView');
+  sv.innerHTML = `
+    <h3 style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text2)">📋 전체 딜 현황</h3>
+    <div style="overflow-x:auto">
+    <table class="deadline-table">
+      <thead>
+        <tr>
+          <th style="cursor:pointer" onclick="tableSort('title')">딜 이름 ⇅</th>
+<th style="cursor:pointer" onclick="tableSort('company')">회사 ⇅</th>
+<th style="cursor:pointer" onclick="tableSort('stage')">단계 ⇅</th>
+<th style="cursor:pointer" onclick="tableSort('owner')">담당자 ⇅</th>
+<th style="cursor:pointer" onclick="tableSort('amount')">금액 ⇅</th>
+<th style="cursor:pointer" onclick="tableSort('date')">마감일 ⇅</th>
+<th>D-Day</th>
+<th style="cursor:pointer" onclick="tableSort('progress')">진행률 ⇅</th>
+        </tr>
+      </thead>
+      <tbody>
+      ${deals.map(d=>{
+        const days = daysLeft(d.date);
+        const isWarn = days >= 0 && days <= 14;
+        return `<tr class="${isWarn?'warn-row':''}" style="cursor:pointer" onclick="openDetail('${d.id}')">
+          <td style="font-weight:500">${d.title}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:5px">
+              <div class="co-avatar" style="background:${d.coColor};width:16px;height:16px;font-size:8px">${d.company[0]}</div>
+              <span style="font-size:11px">${d.company}</span>
+            </div>
+          </td>
+          <td><span style="font-size:10px;padding:2px 6px;border-radius:4px;background:${d.dotColor}22;color:${d.dotColor};font-weight:600">${d.stage}</span></td>
+          <td><div style="display:flex;gap:3px">${d.owners.map((o,i)=>`<div class="deal-avatar-sm" style="background:${aColor(i)};margin-left:0;width:20px;height:20px;font-size:8px">${o}</div>`).join('')}</div></td>
+          <td style="font-family:var(--mono);font-weight:600;font-size:11px">${d.amount}</td>
+          <td style="font-size:11px;font-family:var(--mono)">${d.date}</td>
+          <td>${dayChip(days)}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:60px;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+                <div style="width:${d.progress}%;height:100%;background:${d.dotColor};border-radius:3px"></div>
+              </div>
+              <span style="font-size:10px;font-family:var(--mono);color:var(--text2)">${d.progress}%</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}
+      </tbody>
+    </table>
+    </div>`;
+}
+
+/* ────────────────────────────────
+   딜 상세 모달
+──────────────────────────────── */
+function findDeal(id){
+  for(const col of COLS){
+    const d = col.deals.find(x=>x.id===id);
+    if(d) return {...d, stage:col.name, stageId:col.id, dotColor:col.dotColor, pColor:col.pColor};
+  }
+  return null;
+}
+
+function deleteDeal(colId, dealId){
+  if(!confirm('이 딜을 삭제하시겠습니까?')) return;
+  const col = COLS.find(c=>c.id===colId);
+  if(!col) return;
+  col.deals = col.deals.filter(d=>d.id!==dealId);
+  renderAll();
+}
+function openDetail(dealId){
+  actDetailDealId = dealId;
+  actDetailTab = 'info';
+  const d = findDeal(dealId);
+  if(!d) return;
+  const col = COLS.find(c=>c.deals.some(x=>x.id===dealId));
+
+  // 탭 초기화
+  document.querySelectorAll('.activity-tab').forEach(el=>{
+    el.classList.toggle('on', el.dataset.tab==='info');
+  });
+  document.getElementById('detailInfoSection').style.display = '';
+  document.getElementById('detailActivitySection').style.display = 'none';
+
+  // 활동 배지
+  const actCount = (d.activities||[]).length;
+  document.getElementById('actBadge').textContent = actCount > 0 ? `(${actCount})` : '';
+
+  // 정보 채우기
+  document.getElementById('d-stage-badge').textContent = col?.name || '';
+  document.getElementById('d-stage-badge').style.cssText = `background:${col?.dotColor}22;color:${col?.dotColor}`;
+  document.getElementById('d-title').textContent = d.title;
+  document.getElementById('d-amount').textContent = d.amount;
+  document.getElementById('d-prog-pct').textContent = d.progress+'%';
+  document.getElementById('d-prog-fill').style.cssText = `width:${d.progress}%;background:${col?.pColor}`;
+  document.getElementById('d-company').textContent = d.company;
+  document.getElementById('d-date').textContent = d.date + (d.warn?' ⚠️ 마감 임박':'');
+  document.getElementById('d-tag').innerHTML = `<span class="deal-tag ${d.tagCls}">${d.tag}</span>`;
+  document.getElementById('d-owners').innerHTML = d.owners.map((o,i)=>`
+    <div class="detail-owner-chip">
+      <div class="detail-owner-av" style="background:${aColor(i)}">${o}</div>${o}
+    </div>`).join('');
+  const noteEl = document.getElementById('d-note-section');
+  if(d.note){ noteEl.style.display=''; document.getElementById('d-note').textContent=d.note; }
+  else { noteEl.style.display='none'; }
+
+  document.getElementById('detailOverlay').classList.add('show');
+}
+
+function closeDetail(e){
+  if(!e || e.target === document.getElementById('detailOverlay')) closeDetailById();
+}
+function closeDetailById(){
+  document.getElementById('detailOverlay').classList.remove('show');
+}
+
+/* ────────────────────────────────
+   엑셀 내보내기 (SheetJS)
+──────────────────────────────── */
+function toggleExcelMenu(){
+  const menu = document.getElementById('excelMenu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('excelMenuWrap');
+  if(wrap && !wrap.contains(e.target)){
+    const menu = document.getElementById('excelMenu');
+    if(menu) menu.style.display = 'none';
+  }
+});
+
+function exportExcel(mode){
+  if(!mode) mode = 'all';
+  const menu = document.getElementById('excelMenu');
+  if(menu) menu.style.display = 'none';
+
+  const today = new Date();
+  const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+
+  // ── 대시보드 요약 ──────────────────────────────
+  if(mode === 'dashboard'){
+    const all = COLS.flatMap(c=>c.deals.map(d=>({...d,stage:c.name,stageId:c.id})));
+    const closed = all.filter(d=>d.stageId==='closed');
+
+    // 시트1: 요약
+    const totalRaw = all.reduce((s,d)=>s+d.amtRaw,0);
+    const closedRaw = closed.reduce((s,d)=>s+d.amtRaw,0);
+    const summaryRows = [
+      {'항목':'전체 파이프라인 (만원)','값':totalRaw},
+      {'항목':'계약 완료 (만원)','값':closedRaw},
+      {'항목':'전체 딜 수','값':all.length},
+      {'항목':'완료 딜 수','값':closed.length},
+      {'항목':'마감 임박 딜 수','값':all.filter(d=>d.warn).length},
+    ];
+
+    // 시트2: 단계별
+    const stageRows = COLS.map(c=>({
+      '단계':c.name,
+      '딜 수':c.deals.length,
+      '총 금액 (만원)':c.deals.reduce((s,d)=>s+d.amtRaw,0),
+    }));
+
+    // 시트3: 담당자별
+    const ownerMap = {};
+    all.forEach(d=>d.owners.forEach(o=>{
+      if(!ownerMap[o]) ownerMap[o]={name:o,count:0,raw:0,closed:0};
+      ownerMap[o].count++;ownerMap[o].raw+=d.amtRaw;
+      if(d.stageId==='closed') ownerMap[o].closed++;
+    }));
+    const ownerRows = Object.values(ownerMap).sort((a,b)=>b.raw-a.raw).map(o=>({
+      '담당자':o.name,'딜 수':o.count,'완료':o.closed,'총 금액 (만원)':o.raw
+    }));
+
+    // 시트4: 전환율
+    const rateRows = [];
+    for(let i=0;i<COLS.length-1;i++){
+      const fromCount = COLS.slice(i).reduce((s,c)=>s+c.deals.length,0);
+      const toCount   = COLS.slice(i+1).reduce((s,c)=>s+c.deals.length,0);
+      rateRows.push({
+        '출발 단계':COLS[i].name,
+        '도착 단계':COLS[i+1].name,
+        '출발 딜 수':fromCount,
+        '도착 딜 수':toCount,
+        '전환율 (%)': fromCount===0?0:Math.round(toCount/fromCount*100)
+      });
+    }
+
+    const wb = XLSX.utils.book_new();
+    const ws1 = XLSX.utils.json_to_sheet(summaryRows);
+    ws1['!cols']=[{wch:28},{wch:16}];
+    XLSX.utils.book_append_sheet(wb, ws1, '요약');
+    const ws2 = XLSX.utils.json_to_sheet(stageRows);
+    ws2['!cols']=[{wch:14},{wch:10},{wch:16}];
+    XLSX.utils.book_append_sheet(wb, ws2, '단계별');
+    const ws3 = XLSX.utils.json_to_sheet(ownerRows);
+    ws3['!cols']=[{wch:10},{wch:8},{wch:8},{wch:16}];
+    XLSX.utils.book_append_sheet(wb, ws3, '담당자별');
+    const ws4 = XLSX.utils.json_to_sheet(rateRows);
+    ws4['!cols']=[{wch:14},{wch:14},{wch:12},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws4, '전환율');
+    XLSX.writeFile(wb, `HYERIM_CRM_대시보드_${dateStr}.xlsx`);
+    showToast('대시보드 요약이 다운로드되었습니다 ✅');
+    return;
+  }
+
+  // ── 딜 목록 공통 ──────────────────────────────
+  let deals;
+  let label;
+
+  if(mode === 'mine'){
+    deals = COLS.flatMap(c=>c.deals
+      .filter(d=>d.owners.includes(MY_INITIAL))
+      .map(d=>({...d,stage:c.name,stageId:c.id})));
+    label = '내담당';
+  } else if(mode === 'filtered'){
+    // 현재 탭 + 현재 필터 그대로 적용
+    const base = COLS.flatMap(c=>c.deals
+      .filter(d => currentTab !== 'mine' || d.owners.includes(MY_INITIAL))
+      .map(d=>({...d,stage:c.name,stageId:c.id})));
+    deals = applyAdvFilters(base);
+    const tags = [];
+    if(advFilters.thismonth) tags.push('이번달마감');
+    if(advFilters.bigdeal)   tags.push('5천만이상');
+    if(advFilters.warn)      tags.push('마감임박');
+    label = tags.length ? tags.join('_') : '전체';
+  } else {
+    deals = COLS.flatMap(c=>c.deals.map(d=>({...d,stage:c.name,stageId:c.id})));
+    label = '전체';
+  }
+
+  const rows = deals.map(d=>({
+    '딜 이름': d.title,
+    '회사': d.company,
+    '단계': d.stage,
+    '금액 (만원)': d.amtRaw,
+    '금액': d.amount,
+    '담당자': d.owners.join(', '),
+    '태그': d.tag,
+    '마감일': d.date,
+    '진행률 (%)': d.progress,
+    '마감 임박': d.warn ? '⚠ 임박' : '',
+    '메모': d.note || ''
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{wch:22},{wch:16},{wch:12},{wch:12},{wch:10},{wch:14},{wch:10},{wch:12},{wch:10},{wch:10},{wch:30}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '영업기회_'+label);
+
+  XLSX.writeFile(wb, `HYERIM_CRM_${label}_${dateStr}.xlsx`);
+  showToast(`"${label}" 목록이 다운로드되었습니다 ✅`);
+}
+
+
+/* ────────────────────────────────
+   드래그 앤 드롭
+──────────────────────────────── */
+let dragId=null, fromColId=null, ghost=null, ox=0, oy=0, overBody=null;
+
+function bindDrag(){
+  document.querySelectorAll('.deal-card').forEach(card=>{
+    card.addEventListener('mousedown', startDrag);
+  });
+}
+
+function startDrag(e){
+  if(e.button!==0) return;
+  if(e.target.closest('.deal-menu')) return;
+  const card = e.currentTarget;
+  dragId    = card.dataset.deal;
+  fromColId = card.dataset.col;
+  const rect = card.getBoundingClientRect();
+  ox = e.clientX - rect.left;
+  oy = e.clientY - rect.top;
+  ghost = card.cloneNode(true);
+  ghost.classList.add('drag-ghost');
+  ghost.style.cssText += `width:${rect.width}px;left:${rect.left}px;top:${rect.top}px`;
+  document.body.appendChild(ghost);
+  card.classList.add('dragging');
+  document.body.style.cursor = 'grabbing';
+  document.addEventListener('mousemove', moveDrag);
+  document.addEventListener('mouseup',   endDrag);
+  e.preventDefault();
+}
+
+function moveDrag(e){
+  if(!ghost) return;
+  ghost.style.left = (e.clientX - ox)+'px';
+  ghost.style.top  = (e.clientY - oy)+'px';
+  ghost.style.visibility='hidden';
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  ghost.style.visibility='';
+  const body = el && el.closest('.col-body');
+  if(body !== overBody){
+    overBody && overBody.classList.remove('drag-over');
+    overBody = body;
+    overBody && overBody.classList.add('drag-over');
+  }
+}
+
+function endDrag(e){
+  document.removeEventListener('mousemove', moveDrag);
+  document.removeEventListener('mouseup',   endDrag);
+  document.body.style.cursor = '';
+  overBody && overBody.classList.remove('drag-over');
+  ghost.style.visibility='hidden';
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  ghost.remove(); ghost=null;
+  const origCard = document.querySelector(`.deal-card[data-deal="${dragId}"]`);
+  origCard && origCard.classList.remove('dragging');
+  const targetBody = el && el.closest('.col-body');
+  const toColId = targetBody ? targetBody.dataset.col : null;
+  if(toColId && toColId !== fromColId){
+    const fromCol = COLS.find(c=>c.id===fromColId);
+    const toCol   = COLS.find(c=>c.id===toColId);
+    const idx = fromCol.deals.findIndex(d=>d.id===dragId);
+    if(idx!==-1){
+      const [deal] = fromCol.deals.splice(idx,1);
+      toCol.deals.unshift(deal);
+      renderAll();
+      requestAnimationFrame(()=>{
+        const dropped = document.querySelector(`.deal-card[data-deal="${deal.id}"]`);
+        if(dropped){ dropped.classList.add('card-dropped'); dropped.addEventListener('animationend',()=>dropped.classList.remove('card-dropped'),{once:true}); }
+      });
+      showToast(`"${deal.title}" → ${toCol.name}`);
+    }
+  }
+  overBody=null; dragId=null; fromColId=null;
+}
+
+/* ────────────────────────────────
+   유틸
+──────────────────────────────── */
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function openModal(stageId){
+  document.getElementById('dealModal').classList.add('show');
+  if(stageId) document.getElementById('m-stage').value=stageId;
+}
+function closeModal(){
+  document.getElementById('dealModal').classList.remove('show');
+  ['m-title','m-company','m-amount','m-date','m-owners'].forEach(id=>document.getElementById(id).value='');
+}
+function submitDeal(){
+  const title=document.getElementById('m-title').value.trim();
+  const company=document.getElementById('m-company').value.trim();
+  const amtRaw=parseInt(document.getElementById('m-amount').value)||0;
+  const stageId=document.getElementById('m-stage').value;
+  const date=document.getElementById('m-date').value.replaceAll('-','.')||'미정';
+  const owners=document.getElementById('m-owners').value.split(',').map(s=>s.trim()[0]||'?').filter(Boolean);
+  if(!title||!company){alert('딜 이름과 회사명을 입력해주세요');return;}
+  const col=COLS.find(c=>c.id===stageId);
+  col.deals.unshift({id:'d'+Date.now(),title,company,coColor:'#4f6ef7',amount:amtStr(amtRaw),amtRaw,tag:'신규',tagCls:'tag-blue',owners,progress:0,date,warn:false,note:''});
+  closeModal();
+  renderAll();
+  showToast(`"${title}" 딜이 추가되었습니다`);
+}
+
+/* ── 편집 모달 ── */
+function openEditModal(dealId){
+  const d = findDeal(dealId);
+  if(!d) return;
+  document.getElementById('m-edit-id').value = d.id;
+  document.getElementById('m-edit-title').value = d.title;
+  document.getElementById('m-edit-company').value = d.company;
+  document.getElementById('m-edit-amount').value = d.amtRaw;
+  document.getElementById('m-edit-stage').value = d.stageId;
+  document.getElementById('m-edit-date').value = d.date.replaceAll('.','-');
+  document.getElementById('m-edit-owners').value = d.owners.join(', ');
+  document.getElementById('m-edit-note').value = d.note||'';
+  document.getElementById('editModal').classList.add('show');
+}
+function closeEditModal(){
+  document.getElementById('editModal').classList.remove('show');
+}
+function submitEdit(){
+  const id = document.getElementById('m-edit-id').value;
+  const title = document.getElementById('m-edit-title').value.trim();
+  const company = document.getElementById('m-edit-company').value.trim();
+  const amtRaw = parseInt(document.getElementById('m-edit-amount').value)||0;
+  const stageId = document.getElementById('m-edit-stage').value;
+  const date = document.getElementById('m-edit-date').value.replaceAll('-','.')||'미정';
+  const owners = document.getElementById('m-edit-owners').value.split(',').map(s=>s.trim()[0]||'?').filter(Boolean);
+  const note = document.getElementById('m-edit-note').value.trim();
+  if(!title||!company){alert('딜 이름과 회사명을 입력해주세요');return;}
+  // 기존 컬럼에서 딜 제거
+  let deal;
+  COLS.forEach(c=>{ const i=c.deals.findIndex(d=>d.id===id); if(i!==-1){[deal]=c.deals.splice(i,1);} });
+  // 새 컬럼에 추가
+  const col = COLS.find(c=>c.id===stageId);
+  col.deals.unshift({...deal, title, company, amtRaw, amount:amtStr(amtRaw), date, owners, note});
+  closeEditModal();
+  renderAll();
+  showToast(`"${title}" 수정되었습니다`);
+}
+function editPageTitle(){
+  const el = document.getElementById('pageTitle');
+  const cur = el.textContent;
+  const inp = document.createElement('input');
+  inp.value = cur;
+  inp.style.cssText = 'font-size:16px;font-weight:700;border:1px solid var(--accent);border-radius:5px;padding:2px 6px;outline:none;width:120px;font-family:var(--sans)';
+  el.replaceWith(inp);
+  inp.focus(); inp.select();
+  function done(){ const nEl=document.createElement('span'); nEl.id='pageTitle'; nEl.className='page-title'; nEl.title='더블클릭으로 편집'; nEl.style.cursor='pointer'; nEl.setAttribute('ondblclick','editPageTitle()'); nEl.textContent=inp.value||cur; inp.replaceWith(nEl); }
+  inp.addEventListener('blur', done);
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter') inp.blur(); if(e.key==='Escape'){inp.value=cur;inp.blur();} });
+}
+/* ── 거래처 데이터 ── */
+let COMPANIES = [
+  {id:'co1', name:'삼성SDS', industry:'IT서비스', contact:'이영민 부장', phone:'010-1234-5678', email:'lee@sds.co.kr', note:'ERP 전환 검토 중'},
+  {id:'co2', name:'현대오토에버', industry:'IT서비스', contact:'박지훈 차장', phone:'010-9876-5432', email:'park@autoever.com', note:''},
+  {id:'co3', name:'LG CNS', industry:'IT서비스', contact:'김수진 과장', phone:'010-5555-7777', email:'kim@lgcns.com', note:'클라우드 마이그레이션 관심'},
+];
+
+function openAddCompanyModal(){ document.getElementById('companyModal').classList.add('show'); }
+function closeAddCompanyModal(){
+  document.getElementById('companyModal').classList.remove('show');
+  ['cm-name','cm-industry','cm-contact','cm-phone','cm-email','cm-note'].forEach(id=>document.getElementById(id).value='');
+}
+function submitCompany(){
+  const name = document.getElementById('cm-name').value.trim();
+  if(!name){alert('회사명을 입력해주세요');return;}
+  COMPANIES.push({
+    id:'co'+Date.now(),
+    name,
+    industry: document.getElementById('cm-industry').value.trim(),
+    contact:  document.getElementById('cm-contact').value.trim(),
+    phone:    document.getElementById('cm-phone').value.trim(),
+    email:    document.getElementById('cm-email').value.trim(),
+    note:     document.getElementById('cm-note').value.trim(),
+  });
+  closeAddCompanyModal();
+  renderCompanies();
+  showToast(`"${name}" 거래처가 추가되었습니다`);
+}
+
+function getDealsForCompany(name){
+  return COLS.flatMap(c=>c.deals).filter(d=>d.company===name);
+}
+
+function renderCompanies(){
+  const container = document.getElementById('companiesTable');
+  if(!container) return;
+  const rows = COMPANIES.map(co=>{
+    const deals = getDealsForCompany(co.name);
+    const totalAmt = deals.reduce((s,d)=>s+(d.amtRaw||0),0);
+    const dealBadge = deals.length > 0
+      ? `<span style="background:var(--accent-dim);color:var(--accent);border-radius:10px;padding:2px 8px;font-size:10px;font-weight:600;font-family:var(--mono)">${deals.length}건</span>`
+      : `<span style="background:var(--surface2);color:var(--text3);border-radius:10px;padding:2px 8px;font-size:10px;font-family:var(--mono)">0건</span>`;
+    const amtStr2 = totalAmt >= 10000 ? (totalAmt/10000).toFixed(1)+'억' : totalAmt > 0 ? totalAmt.toLocaleString()+'만' : '-';
+   return `<div style="display:grid;grid-template-columns:1fr 90px 110px 120px 160px 60px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--border);background:#fff;cursor:pointer;transition:background .1s" onclick="openCompanyDetail('${co.id}')" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='#fff'">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div style="width:30px;height:30px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">${co.name[0]}</div>
+        <div>
+          <div style="font-size:12px;font-weight:600">${co.name}</div>
+          <div style="font-size:10px;color:var(--text3)">${co.industry||'-'}</div>
+        </div>
+      </div>
+      <div>${dealBadge}</div>
+      <div style=\"font-family:var(--mono);font-size:12px;font-weight:600;color:var(--green);cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s\" onmouseover=\"this.style.textDecorationColor='var(--green)'\" onmouseout=\"this.style.textDecorationColor='transparent'\" onclick=\"event.stopPropagation();goToDeals('${co.name}')\">${amtStr2}</div>
+      <div style="font-size:11px;color:var(--text2)">${co.contact||'-'}</div>
+      <div style="font-size:11px;color:var(--text2);font-family:var(--mono)">${co.phone||'-'}</div>
+      <div style="font-size:11px;color:var(--accent);cursor:pointer" onclick="event.stopPropagation();deleteCompany('${co.id}')">삭제</div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div style="background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div style="display:grid;grid-template-columns:1fr 90px 110px 120px 160px 60px;padding:9px 14px;background:var(--surface2);border-bottom:2px solid var(--border2);font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em">
+        <div>거래처</div><div>딜 수</div><div>파이프라인</div><div>담당자</div><div>연락처</div><div></div>
+      </div>
+      ${rows || '<div style="padding:32px;text-align:center;color:var(--text3);font-size:12px">등록된 거래처가 없습니다</div>'}
+    </div>`;
+}
+
+function deleteCompany(id){
+  if(!confirm('거래처를 삭제할까요?')) return;
+  COMPANIES = COMPANIES.filter(c=>c.id!==id);
+  renderCompanies();
+}
+
+function switchNav(target){
+  const board = document.getElementById('board');
+  const sortView = document.getElementById('sortView');
+  const dashView = document.getElementById('dashView');
+  const companiesView = document.getElementById('companiesView');
+  const contactsView = document.getElementById('contactsView');
+  const summaryBar = document.getElementById('summaryBar');
+  const viewToggle = document.getElementById('viewToggle');
+  const filterBar = document.getElementById('filterBar');
+  // 모두 숨김
+  board.style.display='none';
+  sortView.style.display='none';
+  dashView.style.display='none';
+  summaryBar.style.display='none';
+  viewToggle.style.display='none';
+  filterBar.style.display='none';
+  companiesView.style.display='none';
+  if(contactsView) contactsView.style.display='none';
+  // 탭 활성화 해제
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  if(target==='companies'){
+    companiesView.style.display='block';
+    document.querySelectorAll('.stab').forEach(t=>{ if(t.textContent.includes('거래처')) t.classList.add('on'); });
+    renderCompanies();
+  } else if(target==='contacts'){
+    if(contactsView){ contactsView.style.display='block'; }
+    document.querySelectorAll('.stab').forEach(t=>{ if(t.textContent.includes('연락처')) t.classList.add('on'); });
+    renderContacts();
+  }
+}
+function openCompanyDetail(id){
+  const co = COMPANIES.find(c=>c.id===id);
+  if(!co) return;
+  const deals = getDealsForCompany(co.name);
+  const totalAmt = deals.reduce((s,d)=>s+(d.amtRaw||0),0);
+  const amtLabel = totalAmt >= 10000 ? (totalAmt/10000).toFixed(1)+'억' : totalAmt > 0 ? totalAmt.toLocaleString()+'만' : '-';
+  const dealRows = deals.length
+    ? deals.map(d=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:7px;margin-bottom:5px">
+        <span style="font-size:12px;font-weight:600">${d.title}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--green)">${d.amount}</span>
+      </div>`).join('')
+    : '<div style="font-size:12px;color:var(--text3)">연결된 딜 없음</div>';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'detail-overlay show';
+  overlay.innerHTML = `
+    <div class="detail-modal">
+      <div class="detail-header">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">🏢 거래처</div>
+        <div class="detail-title">${co.name}</div>
+        <div class="detail-close" onclick="this.closest('.detail-overlay').remove()">✕</div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-section">
+          <div class="detail-section-title">기본 정보</div>
+          <div class="detail-row"><span class="detail-row-label">업종</span><span class="detail-row-value">${co.industry||'-'}</span></div>
+          <div class="detail-row"><span class="detail-row-label">담당자</span><span class="detail-row-value">${co.contact||'-'}</span></div>
+          <div class="detail-row"><span class="detail-row-label">연락처</span><span class="detail-row-value">${co.phone||'-'}</span></div>
+          <div class="detail-row"><span class="detail-row-label">이메일</span><span class="detail-row-value">${co.email||'-'}</span></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">연결된 딜 (${deals.length}건 · ${amtLabel})</div>
+          ${dealRows}
+        </div>
+        ${co.note ? `<div class="detail-section"><div class="detail-section-title">메모</div><div style="font-size:12px;color:var(--text2);background:var(--surface2);border-radius:8px;padding:10px 12px;line-height:1.6">${co.note}</div></div>` : ''}
+      </div>
+    <div class="detail-footer">
+        <button class="btn btn-ghost" onclick="this.closest('.detail-overlay').remove()">닫기</button>
+        <button class="btn btn-primary" onclick="this.closest('.detail-overlay').remove();openEditCompanyModal('${co.id}')">✏️ 수정</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function openCompanyDetail(id){
+  const co = COMPANIES.find(c=>c.id===id);
+  if(!co) return;
+  const deals = getDealsForCompany(co.name);
+  const totalAmt = deals.reduce((s,d)=>s+(d.amtRaw||0),0);
+  const amtLabel = totalAmt >= 10000 ? (totalAmt/10000).toFixed(1)+'억' : totalAmt > 0 ? totalAmt.toLocaleString()+'만' : '-';
+  const dealRows = deals.length
+    ? deals.map(d=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:7px;margin-bottom:5px">
+        <span style="font-size:12px;font-weight:600">${d.title}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--green)">${d.amount}</span>
+      </div>`).join('')
+    : '<div style="font-size:12px;color:var(--text3)">연결된 딜 없음</div>';
+  const overlay = document.createElement('div');
+  overlay.className = 'detail-overlay show';
+  overlay.innerHTML = `
+    <div class="detail-modal">
+      <div class="detail-header">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">🏢 거래처</div>
+        <div class="detail-title">${co.name}</div>
+        <div class="detail-close" onclick="this.closest('.detail-overlay').remove()">✕</div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-section">
+          <div class="detail-section-title">기본 정보</div>
+          <div class="detail-row"><span class="detail-row-label">업종</span><span class="detail-row-value">${co.industry||'-'}</span></div>
+          <div class="detail-row"><span class="detail-row-label">담당자</span><span class="detail-row-value">${co.contact||'-'}</span></div>
+          <div class="detail-row"><span class="detail-row-label">연락처</span><span class="detail-row-value">${co.phone||'-'}</span></div>
+          <div class="detail-row"><span class="detail-row-label">이메일</span><span class="detail-row-value">${co.email||'-'}</span></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">연결된 딜 (${deals.length}건 · ${amtLabel})</div>
+          ${dealRows}
+        </div>
+        ${co.note ? `<div class="detail-section"><div class="detail-section-title">메모</div><div style="font-size:12px;color:var(--text2);background:var(--surface2);border-radius:8px;padding:10px 12px;line-height:1.6">${co.note}</div></div>` : ''}
+      </div>
+      <div class="detail-footer">
+        <button class="btn btn-ghost" onclick="this.closest('.detail-overlay').remove()">닫기</button>
+        <button class="btn btn-primary" onclick="this.closest('.detail-overlay').remove();openEditCompanyModal('${co.id}')">✏️ 수정</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function openEditCompanyModal(id){
+  const co = COMPANIES.find(c=>c.id===id);
+  if(!co) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay show';
+  overlay.innerHTML = `
+    <div class="modal">
+      <div class="modal-title">✏️ 거래처 수정</div>
+      <label>회사명<input id="ec-name" value="${co.name}"/></label>
+      <label>업종<input id="ec-industry" value="${co.industry||''}"/></label>
+      <label>담당자<input id="ec-contact" value="${co.contact||''}"/></label>
+      <label>연락처<input id="ec-phone" value="${co.phone||''}"/></label>
+      <label>이메일<input id="ec-email" value="${co.email||''}"/></label>
+      <label>메모<input id="ec-note" value="${co.note||''}"/></label>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">취소</button>
+        <button class="btn btn-primary" onclick="submitEditCompany('${id}')">저장</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function submitEditCompany(id){
+  const co = COMPANIES.find(c=>c.id===id);
+  if(!co) return;
+  co.name     = document.getElementById('ec-name').value.trim() || co.name;
+  co.industry = document.getElementById('ec-industry').value.trim();
+  co.contact  = document.getElementById('ec-contact').value.trim();
+  co.phone    = document.getElementById('ec-phone').value.trim();
+  co.email    = document.getElementById('ec-email').value.trim();
+  co.note     = document.getElementById('ec-note').value.trim();
+  document.querySelector('.modal-overlay.show')?.remove();
+renderCompanies();
+  showToast(`"${co.name}" 수정되었습니다`);
+}
+/* ── 연락처 데이터 ── */
+const _savedContacts = localStorage.getItem('hyerim_crm_contacts');
+let CONTACTS = _savedContacts ? JSON.parse(_savedContacts) : [
+  {id:'p1', name:'이영민', title:'IT전략팀 부장', company:'삼성SDS', phone:'010-1234-5678', email:'lee@sds.co.kr', note:'ERP 프로젝트 주요 의사결정권자', color:'#4f6ef7'},
+  {id:'p2', name:'박지훈', title:'디지털혁신팀 차장', company:'현대오토에버', phone:'010-9876-5432', email:'park@autoever.com', note:'기술 검토 담당, HR솔루션 도입 검토 중', color:'#7c3aed'},
+  {id:'p3', name:'김수진', title:'클라우드사업팀 과장', company:'LG CNS', phone:'010-5555-7777', email:'kim@lgcns.com', note:'클라우드 마이그레이션 담당자', color:'#16a34a'},
+  {id:'p4', name:'최민준', title:'CTO', company:'카카오', phone:'010-3333-4444', email:'choi@kakao.com', note:'CRM 도입 결정권자, 빠른 의사결정 스타일', color:'#ea580c'},
+  {id:'p5', name:'정은지', title:'인프라팀장', company:'네이버', phone:'010-7777-8888', email:'jung@naver.com', note:'마케팅 플랫폼 프로젝트 스폰서', color:'#0d9488'},
+];
+function saveContacts(){ localStorage.setItem('hyerim_crm_contacts', JSON.stringify(CONTACTS)); }
+function openAddContactModal(){ document.getElementById('contactModal').classList.add('show'); }
+function closeAddContactModal(){
+  document.getElementById('contactModal').classList.remove('show');
+  ['ct-name','ct-title','ct-company','ct-phone','ct-email','ct-note'].forEach(id=>document.getElementById(id).value='');
+}
+function submitContact(){
+  const name = document.getElementById('ct-name').value.trim();
+  if(!name){alert('이름을 입력해주세요');return;}
+  const colors = ['#4f6ef7','#7c3aed','#16a34a','#ea580c','#0d9488','#dc2626','#d97706'];
+  CONTACTS.push({
+    id:'p'+Date.now(), name,
+    title: document.getElementById('ct-title').value.trim(),
+    company: document.getElementById('ct-company').value.trim(),
+    phone: document.getElementById('ct-phone').value.trim(),
+    email: document.getElementById('ct-email').value.trim(),
+    note: document.getElementById('ct-note').value.trim(),
+    color: colors[CONTACTS.length % colors.length]
+  });
+  saveContacts();
+  closeAddContactModal();
+  renderContacts();
+  showToast(`"${name}" 연락처가 추가되었습니다`);
+}
+function openEditContactModal(id){
+  const p = CONTACTS.find(c=>c.id===id);
+  if(!p) return;
+  document.getElementById('ce-id').value = p.id;
+  document.getElementById('ce-name').value = p.name;
+  document.getElementById('ce-title').value = p.title||'';
+  document.getElementById('ce-company').value = p.company||'';
+  document.getElementById('ce-phone').value = p.phone||'';
+  document.getElementById('ce-email').value = p.email||'';
+  document.getElementById('ce-note').value = p.note||'';
+  document.getElementById('contactEditModal').classList.add('show');
+}
+function submitEditContact(){
+  const id = document.getElementById('ce-id').value;
+  const p = CONTACTS.find(c=>c.id===id);
+  if(!p) return;
+  p.name = document.getElementById('ce-name').value.trim() || p.name;
+  p.title = document.getElementById('ce-title').value.trim();
+  p.company = document.getElementById('ce-company').value.trim();
+  p.phone = document.getElementById('ce-phone').value.trim();
+  p.email = document.getElementById('ce-email').value.trim();
+  p.note = document.getElementById('ce-note').value.trim();
+  saveContacts();
+  document.getElementById('contactEditModal').classList.remove('show');
+  renderContacts();
+  showToast(`"${p.name}" 수정되었습니다`);
+}
+function deleteContact(id){
+  if(!confirm('연락처를 삭제할까요?')) return;
+  CONTACTS = CONTACTS.filter(c=>c.id!==id);
+  saveContacts();
+  renderContacts();
+}
+function getDealsForContact(contactCompany){
+  return COLS.flatMap(c=>c.deals.filter(d=>d.company===contactCompany).map(d=>{
+    const col = COLS.find(cc=>cc.deals.some(x=>x.id===d.id));
+    return {...d, stage:col?.name, dotColor:col?.dotColor};
+  }));
+}
+function renderContacts(){
+  const q = (document.getElementById('contactSearchInput')?.value||'').trim().toLowerCase();
+  let list = CONTACTS;
+  if(q) list = list.filter(p=>
+    p.name.toLowerCase().includes(q) ||
+    (p.company||'').toLowerCase().includes(q) ||
+    (p.title||'').toLowerCase().includes(q)
+  );
+  const container = document.getElementById('contactsGrid');
+  if(!container) return;
+  if(list.length === 0){
+    container.innerHTML = '<div style="text-align:center;padding:48px;color:var(--text3);font-size:13px">검색 결과가 없습니다</div>';
+    return;
+  }
+  container.innerHTML = `<div class="contacts-grid-inner">${list.map(p=>{
+    const deals = getDealsForContact(p.company);
+    const dealChips = deals.slice(0,3).map(d=>`
+      <div class="contact-deal-chip" onclick="event.stopPropagation();openDetail('${d.id}')">
+        <span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">${d.title}</span>
+        <span style="font-family:var(--mono);font-size:10px;color:${d.dotColor||'var(--accent)'};flex-shrink:0;margin-left:4px">${d.stage}</span>
+      </div>`).join('');
+    const moreBadge = deals.length > 3 ? `<div style="font-size:10px;color:var(--text3);padding:2px 8px">+${deals.length-3}건 더</div>` : '';
+    return `<div class="contact-card" onclick="openEditContactModal('${p.id}')">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="contact-avatar-lg" style="background:${p.color}">${p.name[0]}</div>
+        <div style="flex:1;min-width:0">
+          <div class="contact-name">${p.name}</div>
+          <div class="contact-title-text">${p.title||''}${p.company?` · <span style="color:var(--accent)">${p.company}</span>`:''}</div>
+        </div>
+        <div onclick="event.stopPropagation();deleteContact('${p.id}')" style="color:var(--text3);font-size:12px;cursor:pointer;padding:4px 6px;border-radius:5px;transition:all .15s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">✕</div>
+      </div>
+      ${p.phone||p.email?`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+        ${p.phone?`<div style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px"><span>📞</span>${p.phone}</div>`:''}
+        ${p.email?`<div style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px"><span>✉️</span>${p.email}</div>`:''}
+      </div>`:''}
+      ${deals.length>0?`<div style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">연결된 딜 (${deals.length}건)</div>
+        <div class="contact-deals-row">${dealChips}${moreBadge}</div>`:
+        `<div style="font-size:11px;color:var(--text3);padding:8px 0">연결된 딜 없음</div>`}
+      ${p.note?`<div style="margin-top:8px;font-size:11px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:6px 9px;line-height:1.5">${p.note}</div>`:''}
+    </div>`;
+  }).join('')}</div>`;
+}
+/* ── 마감 임박 배너 ── */
+function checkDeadlineBanner(){
+  const today = new Date();
+  const threeDays = new Date(today.getTime() + 3*24*60*60*1000);
+  const urgentDeals = COLS.flatMap(c=>c.deals).filter(d=>{
+    const dd = new Date(d.date.replaceAll('.','-'));
+    return dd >= today && dd <= threeDays;
+  });
+  if(urgentDeals.length > 0){
+    const banner = document.getElementById('deadlineBanner');
+    document.getElementById('deadlineBannerText').textContent =
+      `3일 이내 마감 딜이 ${urgentDeals.length}건 있습니다: ${urgentDeals.slice(0,3).map(d=>d.title).join(', ')}${urgentDeals.length>3?' 외 '+( urgentDeals.length-3)+'건':''}`;
+    banner.style.display = 'flex';
+  }
+}
+function goToDeals(companyName){
+  // 거래처뷰 닫고 칸반으로 이동
+  document.getElementById('companiesView').style.display='none';
+  document.getElementById('board').style.display='flex';
+  document.getElementById('sortView').style.display='none';
+  document.getElementById('dashView').style.display='none';
+  document.getElementById('summaryBar').style.display='';
+  document.getElementById('viewToggle').style.display='';
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  document.querySelector('.stab').classList.add('on');
+  currentView='kanban';
+  renderAll();
+  // 해당 회사 카드 하이라이트
+  setTimeout(()=>{
+    const cards = document.querySelectorAll('.deal-card');
+    let found = null;
+    cards.forEach(card=>{
+      const companyEl = card.querySelector('.co-name');
+      if(companyEl && companyEl.textContent.trim()===companyName){
+        if(!found) found=card;
+      }
+    });
+  if(found){
+      found.scrollIntoView({behavior:'smooth',block:'center'});
+      let count=0;
+      const blink=setInterval(()=>{
+        found.style.opacity=count%2===0?'0.2':'1';
+        count++;
+        if(count>=6){ clearInterval(blink); found.style.opacity='1'; }
+      },250);
+    }
+  },150);
+}
+function toggleUserMenu(){
+  const m = document.getElementById('userMenu');
+  m.style.display = m.style.display==='none'?'block':'none';
+}
+document.addEventListener('click', e=>{
+  const m = document.getElementById('userMenu');
+  if(m && m.style.display!=='none' && !e.target.closest('#avatarBtn') && !e.target.closest('#userMenu'))
+    m.style.display='none';
+});
+function logoutUser(){
+  localStorage.removeItem('hyerim_crm_user');
+  location.reload();
+}
+renderAll();
+setTimeout(checkDeadlineBanner, 700);
+</script>
+</body>
+</html>
